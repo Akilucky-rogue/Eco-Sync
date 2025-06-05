@@ -1,7 +1,9 @@
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Users, Calendar, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Calendar, Users, Waves, TreePine, Fish } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const upcomingEvents = [
@@ -10,109 +12,171 @@ const Home = () => {
       name: "Santa Monica Beach Cleanup",
       date: "Dec 15, 2024",
       time: "9:00 AM",
+      location: "Santa Monica Pier",
       volunteers: 45,
-      location: "Santa Monica Pier"
+      maxVolunteers: 60,
+      priority: "High",
+      category: "Beach"
     },
     {
       id: 2,
       name: "Venice Beach Restoration",
-      date: "Dec 22, 2024", 
+      date: "Dec 22, 2024",
       time: "8:00 AM",
+      location: "Venice Beach Boardwalk",
       volunteers: 32,
-      location: "Venice Beach Boardwalk"
+      maxVolunteers: 50,
+      priority: "Medium",
+      category: "Coastal"
     },
     {
       id: 3,
       name: "Malibu Coastal Care",
       date: "Dec 29, 2024",
-      time: "10:00 AM", 
+      time: "7:30 AM",
+      location: "Malibu State Beach",
       volunteers: 28,
-      location: "Malibu State Beach"
+      maxVolunteers: 40,
+      priority: "Low",
+      category: "Marine"
     }
   ];
 
+  const impactStats = [
+    { icon: Waves, label: "Coastline Cleaned", value: "12.5 km", color: "text-blue-600" },
+    { icon: TreePine, label: "Trees Saved", value: "2,340", color: "text-green-600" },
+    { icon: Fish, label: "Marine Life Protected", value: "15k+", color: "text-teal-600" }
+  ];
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High': return 'bg-red-100 text-red-800';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800';
+      case 'Low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="space-y-6">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#014F86] to-[#FF6F61] text-white rounded-lg p-6 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">Clean Oceans, Bright Future</h2>
-        <p className="text-lg opacity-90">Join beach cleanups, earn rewards, and make a real impact</p>
-        <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold">1,247</div>
-            <div className="text-sm opacity-80">Volunteers</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">8.5k kg</div>
-            <div className="text-sm opacity-80">Waste Removed</div>
+      <div className="bg-gradient-to-r from-[#014F86] to-[#C5E4CF] text-white p-6 rounded-lg">
+        <div className="container mx-auto">
+          <h1 className="text-3xl font-bold mb-2">Welcome to EcoSync</h1>
+          <p className="text-lg opacity-90 mb-4">Join our community in protecting marine ecosystems through collaborative cleanup efforts</p>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/events">
+              <Button className="bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white">
+                <Calendar className="h-4 w-4 mr-2" />
+                View All Events
+              </Button>
+            </Link>
+            <Link to="/profile">
+              <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                Take Environmental Quiz
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Interactive Map Placeholder */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-[#014F86]" />
-            Cleanup Locations
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-[#C5E4CF] h-48 rounded-lg flex items-center justify-center">
-            <div className="text-center text-[#014F86]">
-              <MapPin className="h-12 w-12 mx-auto mb-2" />
-              <p className="font-medium">Interactive Map</p>
-              <p className="text-sm opacity-70">Beach cleanup locations will appear here</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="container mx-auto p-4 space-y-6">
+        {/* Impact Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          {impactStats.map((stat, index) => (
+            <Card key={index} className="text-center">
+              <CardContent className="p-4">
+                <stat.icon className={`h-8 w-8 ${stat.color} mx-auto mb-2`} />
+                <div className="text-lg font-bold text-[#014F86]">{stat.value}</div>
+                <div className="text-xs text-gray-600">{stat.label}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-      {/* Upcoming Events */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-[#FF6F61]" />
-            Upcoming Cleanups
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {upcomingEvents.map((event) => (
-            <div key={event.id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-[#014F86]">{event.name}</h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                    <span>{event.date} • {event.time}</span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      {event.volunteers} joined
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                    <MapPin className="h-4 w-4" />
-                    {event.location}
-                  </div>
+        {/* Interactive Map Placeholder */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-[#014F86]">
+              <MapPin className="h-5 w-5" />
+              Cleanup Locations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 bg-gradient-to-b from-blue-100 to-blue-200 rounded-lg flex items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
+              
+              {/* Map Pins */}
+              <div className="absolute top-1/4 left-1/3">
+                <div className="w-6 h-6 bg-[#FF6F61] rounded-full flex items-center justify-center animate-pulse">
+                  <MapPin className="h-4 w-4 text-white" />
                 </div>
-                <Button className="bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white">
-                  Join
-                </Button>
+                <div className="text-xs text-center mt-1 font-medium">Santa Monica</div>
+              </div>
+              
+              <div className="absolute top-1/2 left-1/4">
+                <div className="w-6 h-6 bg-[#FF6F61] rounded-full flex items-center justify-center animate-pulse">
+                  <MapPin className="h-4 w-4 text-white" />
+                </div>
+                <div className="text-xs text-center mt-1 font-medium">Venice</div>
+              </div>
+              
+              <div className="absolute top-1/3 right-1/4">
+                <div className="w-6 h-6 bg-[#FF6F61] rounded-full flex items-center justify-center animate-pulse">
+                  <MapPin className="h-4 w-4 text-white" />
+                </div>
+                <div className="text-xs text-center mt-1 font-medium">Malibu</div>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-[#014F86] font-medium">Interactive Map</p>
+                <p className="text-sm text-gray-600">Click on pins to view cleanup details</p>
               </div>
             </div>
-          ))}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <Button className="h-20 bg-[#C5E4CF] text-[#014F86] hover:bg-[#C5E4CF]/90 flex flex-col gap-2">
-          <Award className="h-6 w-6" />
-          Take Quiz
-        </Button>
-        <Button className="h-20 bg-[#F6EFD2] text-[#014F86] hover:bg-[#F6EFD2]/90 flex flex-col gap-2">
-          <Users className="h-6 w-6" />
-          Find Team
-        </Button>
+        {/* Upcoming Events */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-[#014F86]">Upcoming Cleanups</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingEvents.map((event) => (
+                <div key={event.id} className="flex justify-between items-center p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-medium text-[#014F86]">{event.name}</h4>
+                      <Badge className={getPriorityColor(event.priority)}>
+                        {event.priority}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {event.date} at {event.time}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {event.location}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {event.volunteers}/{event.maxVolunteers}
+                      </span>
+                    </div>
+                  </div>
+                  <Link to={`/events`}>
+                    <Button className="bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white">
+                      Join Cleanup
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
