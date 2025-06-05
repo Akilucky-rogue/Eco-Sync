@@ -6,16 +6,17 @@ import { Plus, Edit, Users, Calendar, FileText, BarChart3 } from "lucide-react";
 
 const Admin = () => {
   const adminStats = {
-    activeEvents: 3,
-    totalVolunteers: 1247,
-    pendingReports: 5,
-    monthlyEvents: 12
+    activeEvents: 4,
+    totalVolunteers: 2156,
+    pendingReports: 8,
+    monthlyEvents: 22
   };
 
   const recentEvents = [
-    { name: "Santa Monica Beach Cleanup", status: "active", volunteers: 45, date: "Dec 15" },
-    { name: "Venice Beach Restoration", status: "scheduled", volunteers: 32, date: "Dec 22" },
-    { name: "Malibu Coastal Care", status: "scheduled", volunteers: 28, date: "Dec 29" }
+    { name: "Mumbai Marine Drive Cleanup", status: "active", volunteers: 85, date: "Dec 15" },
+    { name: "Goa Beach Restoration", status: "scheduled", volunteers: 67, date: "Dec 22" },
+    { name: "Chennai Marina Beach Care", status: "scheduled", volunteers: 52, date: "Dec 29" },
+    { name: "Kochi Backwaters Conservation", status: "scheduled", volunteers: 43, date: "Jan 5" }
   ];
 
   const getStatusColor = (status: string) => {
@@ -32,7 +33,7 @@ const Admin = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#014F86]">Admin Panel</h1>
-          <p className="text-gray-600">Manage events and track volunteer activities</p>
+          <p className="text-gray-600">Manage events and track volunteer activities across Indian coastal regions</p>
         </div>
         <Button className="bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white">
           <Plus className="h-4 w-4 mr-2" />
@@ -116,7 +117,7 @@ const Admin = () => {
           <CardContent className="p-6 text-center">
             <FileText className="h-12 w-12 text-[#FF6F61] mx-auto mb-3" />
             <h3 className="font-medium text-[#014F86] mb-2">Generate Report</h3>
-            <p className="text-sm text-gray-600">Create AI-powered impact summaries</p>
+            <p className="text-sm text-gray-600">Create AI-powered impact summaries and analytics</p>
           </CardContent>
         </Card>
         
@@ -124,7 +125,7 @@ const Admin = () => {
           <CardContent className="p-6 text-center">
             <Users className="h-12 w-12 text-[#FF6F61] mx-auto mb-3" />
             <h3 className="font-medium text-[#014F86] mb-2">Volunteer Management</h3>
-            <p className="text-sm text-gray-600">View and manage volunteer profiles</p>
+            <p className="text-sm text-gray-600">View and manage volunteer profiles across regions</p>
           </CardContent>
         </Card>
         

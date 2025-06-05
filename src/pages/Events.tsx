@@ -12,68 +12,92 @@ const Events = () => {
   const allEvents = [
     {
       id: 1,
-      name: "Santa Monica Beach Cleanup",
+      name: "Mumbai Marine Drive Cleanup",
       date: "Dec 15, 2024",
-      time: "9:00 AM - 12:00 PM",
-      location: "Santa Monica Pier, CA",
-      description: "Join us for a comprehensive beach cleanup focusing on plastic waste removal and marine debris collection.",
-      volunteers: 45,
-      maxVolunteers: 60,
-      pointsReward: 50,
+      time: "6:00 AM - 9:00 AM",
+      location: "Marine Drive, Mumbai, Maharashtra",
+      description: "Join us for a comprehensive beach cleanup focusing on plastic waste removal and marine debris collection along Mumbai's iconic Marine Drive.",
+      volunteers: 85,
+      maxVolunteers: 120,
+      pointsReward: 60,
       category: "Beach Cleanup",
       difficulty: "Beginner",
-      wasteTarget: ["Plastic bottles", "Food wrappers", "Cigarette butts"],
+      wasteTarget: ["Plastic bottles", "Food wrappers", "Cigarette butts", "Polythene bags"],
       status: "upcoming"
     },
     {
       id: 2,
-      name: "Venice Beach Restoration",
+      name: "Goa Beach Restoration",
       date: "Dec 22, 2024",
-      time: "8:00 AM - 11:00 AM",
-      location: "Venice Beach Boardwalk, CA",
-      description: "Restore the natural beauty of Venice Beach while protecting marine wildlife habitats.",
-      volunteers: 32,
-      maxVolunteers: 50,
-      pointsReward: 75,
+      time: "7:00 AM - 10:00 AM",
+      location: "Baga Beach, Goa",
+      description: "Restore the natural beauty of Goa's beaches while protecting marine wildlife habitats and preserving coastal biodiversity.",
+      volunteers: 67,
+      maxVolunteers: 100,
+      pointsReward: 80,
       category: "Coastal Restoration",
       difficulty: "Intermediate",
-      wasteTarget: ["Glass bottles", "Metal cans", "Plastic debris"],
+      wasteTarget: ["Glass bottles", "Metal cans", "Plastic debris", "Fishing nets"],
       status: "upcoming"
     },
     {
       id: 3,
-      name: "Malibu Coastal Care",
+      name: "Chennai Marina Beach Care",
       date: "Dec 29, 2024",
-      time: "7:30 AM - 10:30 AM",
-      location: "Malibu State Beach, CA",
-      description: "Early morning cleanup to protect sensitive coastal ecosystems and nesting areas.",
-      volunteers: 28,
-      maxVolunteers: 40,
-      pointsReward: 60,
+      time: "5:30 AM - 8:30 AM",
+      location: "Marina Beach, Chennai, Tamil Nadu",
+      description: "Early morning cleanup at one of India's longest beaches to protect sensitive coastal ecosystems and nesting areas.",
+      volunteers: 52,
+      maxVolunteers: 80,
+      pointsReward: 75,
       category: "Marine Protection",
       difficulty: "Advanced",
-      wasteTarget: ["Fishing nets", "Rope", "Large debris"],
+      wasteTarget: ["Large debris", "Rope", "Medical waste", "Industrial waste"],
+      status: "upcoming"
+    },
+    {
+      id: 4,
+      name: "Kochi Backwaters Conservation",
+      date: "Jan 5, 2025",
+      time: "6:30 AM - 9:30 AM",
+      location: "Kochi Backwaters, Kerala",
+      description: "Protect the unique backwater ecosystem while cleaning waterways and preserving mangrove habitats.",
+      volunteers: 43,
+      maxVolunteers: 70,
+      pointsReward: 85,
+      category: "Waterway Cleanup",
+      difficulty: "Intermediate",
+      wasteTarget: ["Plastic waste", "Coconut shells", "Paper waste", "Organic debris"],
       status: "upcoming"
     }
   ];
 
   const pastEvents = [
     {
-      id: 4,
-      name: "Manhattan Beach Cleanup",
+      id: 5,
+      name: "Juhu Beach Cleanup",
       date: "Dec 1, 2024",
-      wasteCollected: "125 kg",
-      volunteers: 35,
-      pointsEarned: 65,
+      wasteCollected: "245 kg",
+      volunteers: 95,
+      pointsEarned: 70,
       status: "completed"
     },
     {
-      id: 5,
-      name: "Hermosa Beach Care",
+      id: 6,
+      name: "Puri Beach Conservation",
       date: "Nov 24, 2024",
-      wasteCollected: "89 kg",
-      volunteers: 28,
-      pointsEarned: 45,
+      wasteCollected: "189 kg",
+      volunteers: 68,
+      pointsEarned: 55,
+      status: "completed"
+    },
+    {
+      id: 7,
+      name: "Visakhapatnam Coastal Care",
+      date: "Nov 15, 2024",
+      wasteCollected: "312 kg",
+      volunteers: 128,
+      pointsEarned: 90,
       status: "completed"
     }
   ];
@@ -94,8 +118,8 @@ const Events = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#014F86] mb-2">Beach Cleanup Events</h1>
-        <p className="text-gray-600">Discover and join cleanup events to make a positive environmental impact</p>
+        <h1 className="text-2xl font-bold text-[#014F86] mb-2">Coastal Cleanup Events</h1>
+        <p className="text-gray-600">Discover and join cleanup events across India's coastline to make a positive environmental impact</p>
       </div>
 
       <Tabs defaultValue="upcoming" className="space-y-6">

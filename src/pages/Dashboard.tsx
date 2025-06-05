@@ -6,33 +6,35 @@ import { TrendingUp, Users, Award, Recycle, Calendar, MapPin } from "lucide-reac
 
 const Dashboard = () => {
   const overallStats = {
-    totalWasteCollected: 2847,
-    totalVolunteers: 1247,
-    eventsCompleted: 45,
-    coastlineRestored: 12.5
+    totalWasteCollected: 4567,
+    totalVolunteers: 2156,
+    eventsCompleted: 78,
+    coastlineRestored: 28.5
   };
 
   const monthlyData = [
-    { month: "Aug", waste: 320, volunteers: 89, events: 8 },
-    { month: "Sep", waste: 450, volunteers: 156, events: 12 },
-    { month: "Oct", waste: 380, volunteers: 134, events: 10 },
-    { month: "Nov", waste: 520, volunteers: 189, events: 15 },
-    { month: "Dec", waste: 1177, volunteers: 679, events: 0 } // Current month (partial)
+    { month: "Aug", waste: 520, volunteers: 156, events: 12 },
+    { month: "Sep", waste: 680, volunteers: 234, events: 18 },
+    { month: "Oct", waste: 590, volunteers: 189, events: 15 },
+    { month: "Nov", waste: 745, volunteers: 298, events: 22 },
+    { month: "Dec", waste: 2032, volunteers: 1279, events: 11 } // Current month (partial)
   ];
 
   const wasteBreakdown = [
-    { type: "Plastic", amount: 1420, percentage: 50, color: "bg-red-500" },
-    { type: "Glass", amount: 569, percentage: 20, color: "bg-green-500" },
-    { type: "Metal", amount: 427, percentage: 15, color: "bg-blue-500" },
-    { type: "Organic", amount: 285, percentage: 10, color: "bg-yellow-500" },
-    { type: "Other", amount: 146, percentage: 5, color: "bg-gray-500" }
+    { type: "Plastic", amount: 2284, percentage: 50, color: "bg-red-500" },
+    { type: "Organic", amount: 913, percentage: 20, color: "bg-green-500" },
+    { type: "Paper", amount: 685, percentage: 15, color: "bg-blue-500" },
+    { type: "Metal", amount: 457, percentage: 10, color: "bg-yellow-500" },
+    { type: "Glass", amount: 228, percentage: 5, color: "bg-gray-500" }
   ];
 
   const topLocations = [
-    { name: "Santa Monica Beach", cleanups: 12, waste: "456 kg", impact: "High" },
-    { name: "Venice Beach", cleanups: 8, waste: "324 kg", impact: "Medium" },
-    { name: "Malibu Coast", cleanups: 6, waste: "289 kg", impact: "High" },
-    { name: "Manhattan Beach", cleanups: 5, waste: "198 kg", impact: "Medium" }
+    { name: "Mumbai Marine Drive", cleanups: 18, waste: "756 kg", impact: "High" },
+    { name: "Chennai Marina Beach", cleanups: 15, waste: "634 kg", impact: "High" },
+    { name: "Goa Beaches", cleanups: 12, waste: "523 kg", impact: "Medium" },
+    { name: "Kochi Backwaters", cleanups: 9, waste: "412 kg", impact: "Medium" },
+    { name: "Visakhapatnam Coast", cleanups: 8, waste: "389 kg", impact: "High" },
+    { name: "Puri Beach", cleanups: 6, waste: "298 kg", impact: "Medium" }
   ];
 
   const getImpactColor = (impact: string) => {
@@ -48,7 +50,7 @@ const Dashboard = () => {
     <div className="container mx-auto p-4 space-y-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#014F86] mb-2">Impact Dashboard</h1>
-        <p className="text-gray-600">Track our collective environmental impact and community growth</p>
+        <p className="text-gray-600">Track our collective environmental impact across India's coastline and community growth</p>
       </div>
 
       {/* Overview Stats */}
@@ -115,15 +117,15 @@ const Dashboard = () => {
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <div className="text-xs text-gray-600 mb-1">Waste</div>
-                        <Progress value={(month.waste / 600) * 100} className="h-2" />
+                        <Progress value={(month.waste / 800) * 100} className="h-2" />
                       </div>
                       <div>
                         <div className="text-xs text-gray-600 mb-1">Volunteers</div>
-                        <Progress value={(month.volunteers / 200) * 100} className="h-2" />
+                        <Progress value={(month.volunteers / 300) * 100} className="h-2" />
                       </div>
                       <div>
                         <div className="text-xs text-gray-600 mb-1">Events</div>
-                        <Progress value={(month.events / 15) * 100} className="h-2" />
+                        <Progress value={(month.events / 25) * 100} className="h-2" />
                       </div>
                     </div>
                   </div>

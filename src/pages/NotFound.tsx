@@ -14,7 +14,7 @@ const NotFound = () => {
           </div>
           <h1 className="text-2xl font-bold text-[#014F86] mb-2">Page Not Found</h1>
           <p className="text-gray-600 mb-6">
-            The page you're looking for seems to have drifted away like ocean debris.
+            The page you're looking for seems to have drifted away like debris in the Arabian Sea.
           </p>
           <div className="space-y-3">
             <Link to="/">
