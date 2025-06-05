@@ -8,8 +8,8 @@ const Profile = () => {
   const userStats = {
     name: "Alex Chen",
     level: 5,
-    points: 1,247,
-    nextLevelPoints: 1,500,
+    points: 1247,
+    nextLevelPoints: 1500,
     badges: ["Plastic Warrior", "Team Player", "Early Bird"],
     cleanupCount: 12,
     wasteCollected: 45.2,
