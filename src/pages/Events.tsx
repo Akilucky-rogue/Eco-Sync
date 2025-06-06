@@ -1,9 +1,10 @@
+
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Calendar, Users, Clock, Award, CheckCircle, Star, Sparkles, Trophy } from "lucide-react";
+import { Calendar, Trophy } from "lucide-react";
+import EventCard from "../components/EventCard";
+import PastEventCard from "../components/PastEventCard";
+import EventsHeader from "../components/EventsHeader";
 
 const Events = () => {
   const [joinedEvents, setJoinedEvents] = useState<number[]>([]);
@@ -112,34 +113,9 @@ const Events = () => {
     setJoinedEvents(prev => [...prev, eventId]);
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Beginner': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Intermediate': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Advanced': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   return (
     <div className="container mx-auto p-4">
-      {/* Enhanced Header */}
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="p-3 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-xl shadow-lg">
-            <Sparkles className="h-6 w-6 text-white" />
-          </div>
-          <Badge className="bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2] text-[#014F86] border-0 px-4 py-2 text-sm font-semibold">
-            🌊 Coastal Conservation Events
-          </Badge>
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-[#014F86] mb-3 bg-gradient-to-r from-[#014F86] to-[#0066A3] bg-clip-text text-transparent">
-          Coastal Cleanup Events
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-          Discover and join cleanup events across India's coastline to make a positive environmental impact
-        </p>
-      </div>
+      <EventsHeader />
 
       <Tabs defaultValue="upcoming" className="space-y-8">
         <TabsList className="grid w-full grid-cols-2 bg-white shadow-lg rounded-xl border-0 p-1 h-14">
@@ -161,134 +137,18 @@ const Events = () => {
 
         <TabsContent value="upcoming" className="space-y-6">
           {allEvents.map((event) => (
-            <Card key={event.id} className="overflow-hidden shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
-              <CardHeader className="bg-gradient-to-br from-[#C5E4CF] via-[#F6EFD2] to-[#E8F5E8] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -translate-y-16 translate-x-16"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-                <div className="relative flex justify-between items-start">
-                  <div className="flex items-center gap-4">
-                    <div className="text-5xl">{event.image}</div>
-                    <div>
-                      <CardTitle className="text-[#014F86] mb-3 text-xl">{event.name}</CardTitle>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="bg-white/50 border-[#014F86]/20 text-[#014F86] font-medium">
-                          {event.category}
-                        </Badge>
-                        <Badge className={`${getDifficultyColor(event.difficulty)} border font-medium`}>
-                          {event.difficulty}
-                        </Badge>
-                        <Badge className="bg-gradient-to-r from-[#FF6F61] to-[#E55B50] text-white border-0 shadow-md">
-                          <Award className="h-3 w-3 mr-1" />
-                          {event.pointsReward} pts
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  {joinedEvents.includes(event.id) ? (
-                    <Button disabled className="bg-green-600 text-white shadow-lg">
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Joined
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={() => handleJoinEvent(event.id)}
-                      className="bg-gradient-to-r from-[#FF6F61] to-[#E55B50] hover:from-[#E55B50] hover:to-[#D14E41] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                      size="lg"
-                    >
-                      <Star className="h-4 w-4 mr-2" />
-                      Join Event
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-8">
-                <p className="text-gray-700 mb-6 text-lg leading-relaxed">{event.description}</p>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg">
-                    <Calendar className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium">{event.date}</span>
-                  </div>
-                  <div className="flex items-center gap-3 bg-green-50 p-3 rounded-lg">
-                    <Clock className="h-5 w-5 text-green-600" />
-                    <span className="text-sm font-medium">{event.time}</span>
-                  </div>
-                  <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-lg">
-                    <MapPin className="h-5 w-5 text-purple-600" />
-                    <span className="text-sm font-medium">{event.location}</span>
-                  </div>
-                  <div className="flex items-center gap-3 bg-orange-50 p-3 rounded-lg">
-                    <Users className="h-5 w-5 text-orange-600" />
-                    <span className="text-sm font-medium">{event.volunteers}/{event.maxVolunteers}</span>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span className="font-medium">Volunteer Progress</span>
-                    <span className="font-semibold">{Math.round((event.volunteers / event.maxVolunteers) * 100)}% Full</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                    <div 
-                      className="bg-gradient-to-r from-[#FF6F61] to-[#E55B50] h-3 rounded-full transition-all duration-500 shadow-sm"
-                      style={{ width: `${(event.volunteers / event.maxVolunteers) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-[#014F86] mb-3 flex items-center gap-2">
-                    <Award className="h-4 w-4" />
-                    Target Waste Types:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {event.wasteTarget.map((waste, index) => (
-                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 hover:bg-gray-100 transition-colors">
-                        {waste}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <EventCard
+              key={event.id}
+              event={event}
+              isJoined={joinedEvents.includes(event.id)}
+              onJoin={handleJoinEvent}
+            />
           ))}
         </TabsContent>
 
         <TabsContent value="past" className="space-y-6">
           {pastEvents.map((event) => (
-            <Card key={event.id} className="shadow-lg border-0 hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">{event.image}</div>
-                    <div>
-                      <h3 className="font-bold text-[#014F86] text-xl mb-1">{event.name}</h3>
-                      <p className="text-gray-600">{event.date}</p>
-                    </div>
-                  </div>
-                  <Badge className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200 px-4 py-2 font-semibold">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Completed
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="text-center bg-blue-50 p-4 rounded-xl">
-                    <div className="text-2xl font-bold text-[#FF6F61] mb-1">{event.wasteCollected}</div>
-                    <div className="text-sm text-gray-600 font-medium">Waste Collected</div>
-                  </div>
-                  <div className="text-center bg-green-50 p-4 rounded-xl">
-                    <div className="text-2xl font-bold text-[#FF6F61] mb-1">{event.volunteers}</div>
-                    <div className="text-sm text-gray-600 font-medium">Volunteers</div>
-                  </div>
-                  <div className="text-center bg-yellow-50 p-4 rounded-xl">
-                    <div className="text-2xl font-bold text-[#FF6F61] mb-1">+{event.pointsEarned}</div>
-                    <div className="text-sm text-gray-600 font-medium">Points Earned</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <PastEventCard key={event.id} event={event} />
           ))}
         </TabsContent>
       </Tabs>
