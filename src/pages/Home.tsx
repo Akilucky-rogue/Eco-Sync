@@ -1,9 +1,11 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Users, Waves, TreePine, Fish, Star, Award, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import Leaderboard from "../components/Leaderboard";
+import WeatherWidget from "../components/WeatherWidget";
+import VolunteerTestimonials from "../components/VolunteerTestimonials";
 
 const Home = () => {
   const upcomingEvents = [
@@ -111,6 +113,12 @@ const Home = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* New: Weather Widget and Leaderboard Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <WeatherWidget />
+          <Leaderboard />
         </div>
 
         {/* Enhanced Interactive Map */}
@@ -264,6 +272,9 @@ const Home = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* New: Volunteer Testimonials */}
+        <VolunteerTestimonials />
       </div>
     </div>
   );

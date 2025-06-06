@@ -1,6 +1,7 @@
 
 import { ReactNode } from "react";
 import Navigation from "./Navigation";
+import NotificationSystem from "./NotificationSystem";
 
 interface LayoutProps {
   children: ReactNode;
@@ -26,40 +27,46 @@ const Layout = ({ children }: LayoutProps) => {
               <p className="text-xs text-blue-200">Marine Conservation Platform</p>
             </div>
           </div>
-          <nav className="flex space-x-8">
-            {[
-              { href: "/", label: "Home" },
-              { href: "/events", label: "Events" },
-              { href: "/profile", label: "Profile" },
-              { href: "/dashboard", label: "Impact" },
-              { href: "/admin", label: "Admin" }
-            ].map((item) => (
-              <a 
-                key={item.href}
-                href={item.href} 
-                className="relative px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group"
-              >
-                <span className="relative z-10">{item.label}</span>
-                <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-              </a>
-            ))}
-          </nav>
+          <div className="flex items-center gap-6">
+            <nav className="flex space-x-8">
+              {[
+                { href: "/", label: "Home" },
+                { href: "/events", label: "Events" },
+                { href: "/profile", label: "Profile" },
+                { href: "/dashboard", label: "Impact" },
+                { href: "/admin", label: "Admin" }
+              ].map((item) => (
+                <a 
+                  key={item.href}
+                  href={item.href} 
+                  className="relative px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group"
+                >
+                  <span className="relative z-10">{item.label}</span>
+                  <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                </a>
+              ))}
+            </nav>
+            <NotificationSystem />
+          </div>
         </div>
       </header>
 
       {/* Enhanced Mobile Header */}
       <header className="md:hidden bg-gradient-to-r from-[#014F86] to-[#0066A3] text-white shadow-xl">
-        <div className="flex items-center justify-center space-x-3 py-4 px-4">
-          <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-sm">E</span>
+        <div className="flex items-center justify-between py-4 px-4">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-sm">E</span>
+              </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white animate-pulse"></div>
             </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white animate-pulse"></div>
+            <div>
+              <h1 className="text-2xl font-bold">EcoSync</h1>
+              <p className="text-xs text-blue-200">Marine Conservation</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">EcoSync</h1>
-            <p className="text-xs text-blue-200">Marine Conservation</p>
-          </div>
+          <NotificationSystem />
         </div>
       </header>
 
