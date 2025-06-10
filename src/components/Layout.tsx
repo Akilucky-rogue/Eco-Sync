@@ -34,6 +34,7 @@ const Layout = ({ children }: LayoutProps) => {
                 { href: "/events", label: "Events" },
                 { href: "/profile", label: "Profile" },
                 { href: "/dashboard", label: "Impact" },
+                { href: "/gamification", label: "Rewards" },
                 { href: "/admin", label: "Admin" }
               ].map((item) => (
                 <a 
