@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, XCircle, Brain, Award } from "lucide-react";
+import { Brain, CheckCircle, XCircle, Award, RotateCcw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuizQuestion {
   id: number;
@@ -13,101 +14,98 @@ interface QuizQuestion {
   correctAnswer: number;
   explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  aiGenerated: boolean;
 }
 
-const EnvironmentalQuiz = () => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
-  const [quizComplete, setQuizComplete] = useState(false);
+interface EnvironmentalQuizProps {
+  topic?: string;
+  onComplete?: (score: number, totalQuestions: number) => void;
+}
 
-  // Mock quiz questions (in real app, these would come from KakushIN API)
+const EnvironmentalQuiz = ({ topic = "Marine Conservation", onComplete }: EnvironmentalQuizProps) => {
+  const { toast } = useToast();
+  
   const questions: QuizQuestion[] = [
     {
       id: 1,
-      question: "What percentage of ocean litter is made up of plastics?",
-      options: ["50%", "80%", "95%", "100%"],
-      correctAnswer: 1,
-      explanation: "Over 80% of marine debris consists of plastic items like bottles and bags, which come from coastal activities and runoff.",
-      difficulty: 'medium',
-      aiGenerated: true
+      question: "What percentage of the Earth's surface is covered by oceans?",
+      options: ["50%", "61%", "71%", "81%"],
+      correctAnswer: 2,
+      explanation: "Oceans cover approximately 71% of the Earth's surface, making them crucial for global climate regulation.",
+      difficulty: 'easy'
     },
     {
       id: 2,
-      question: "How long does it take for a plastic bottle to decompose in the ocean?",
-      options: ["10 years", "50 years", "100 years", "450+ years"],
+      question: "Which of these marine animals is most affected by plastic pollution?",
+      options: ["Dolphins", "Sea Turtles", "Whales", "All of the above"],
       correctAnswer: 3,
-      explanation: "Plastic bottles can take 450+ years to decompose in marine environments, releasing harmful microplastics throughout the process.",
-      difficulty: 'easy',
-      aiGenerated: true
+      explanation: "All marine animals are significantly affected by plastic pollution, which can cause entanglement, ingestion, and habitat destruction.",
+      difficulty: 'medium'
     },
     {
       id: 3,
-      question: "Which marine animals are most affected by plastic pollution?",
-      options: ["Only fish", "Sea turtles and seabirds", "All marine life", "Coral reefs only"],
+      question: "How long does it take for a plastic bottle to decompose in the ocean?",
+      options: ["50 years", "100 years", "450 years", "1000 years"],
       correctAnswer: 2,
-      explanation: "Plastic pollution affects all marine life, from microscopic plankton to large whales, disrupting the entire ocean food chain.",
-      difficulty: 'hard',
-      aiGenerated: true
+      explanation: "A plastic bottle can take up to 450 years to decompose in marine environments, causing long-term pollution.",
+      difficulty: 'hard'
     },
     {
       id: 4,
-      question: "What is the most effective way to reduce ocean plastic pollution?",
-      options: ["Ocean cleanups only", "Prevent plastic from entering oceans", "Use biodegradable plastics", "Filter ocean water"],
-      correctAnswer: 1,
-      explanation: "Prevention is key - stopping plastic waste from entering waterways through better waste management and reducing single-use plastics.",
-      difficulty: 'medium',
-      aiGenerated: true
-    },
-    {
-      id: 5,
-      question: "What are microplastics?",
-      options: ["Very small plastic bags", "Plastic particles less than 5mm", "Plastic used in medicine", "Recycled plastic"],
-      correctAnswer: 1,
-      explanation: "Microplastics are plastic particles smaller than 5mm that result from the breakdown of larger plastic items and are now found throughout the ocean.",
-      difficulty: 'easy',
-      aiGenerated: true
+      question: "What is the main cause of coral bleaching?",
+      options: ["Overfishing", "Ocean acidification", "Rising water temperatures", "Plastic pollution"],
+      correctAnswer: 2,
+      explanation: "Rising water temperatures due to climate change is the primary cause of coral bleaching events worldwide.",
+      difficulty: 'medium'
     }
   ];
 
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const [answers, setAnswers] = useState<number[]>([]);
+
   const handleAnswerSelect = (answerIndex: number) => {
+    if (showExplanation) return;
     setSelectedAnswer(answerIndex);
   };
 
-  const handleNextQuestion = () => {
-    if (selectedAnswer === questions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
+  const handleSubmitAnswer = () => {
+    if (selectedAnswer === null) return;
+
+    const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
+    if (isCorrect) {
+      setScore(prev => prev + 1);
     }
-    
-    setShowResult(true);
-    
-    setTimeout(() => {
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedAnswer(null);
-        setShowResult(false);
-      } else {
-        setQuizComplete(true);
-      }
-    }, 2000);
+
+    setAnswers(prev => [...prev, selectedAnswer]);
+    setShowExplanation(true);
+
+    toast({
+      title: isCorrect ? "Correct!" : "Not quite right",
+      description: isCorrect ? "Well done! +10 points" : "Better luck next time!",
+    });
   };
 
-  const resetQuiz = () => {
+  const handleNextQuestion = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(prev => prev + 1);
+      setSelectedAnswer(null);
+      setShowExplanation(false);
+    } else {
+      setIsComplete(true);
+      onComplete?.(score, questions.length);
+    }
+  };
+
+  const handleRestart = () => {
     setCurrentQuestion(0);
     setSelectedAnswer(null);
-    setShowResult(false);
+    setShowExplanation(false);
     setScore(0);
-    setQuizComplete(false);
-  };
-
-  const getScoreMessage = () => {
-    const percentage = (score / questions.length) * 100;
-    if (percentage >= 80) return "🌟 Ocean Expert! You're making waves in environmental knowledge!";
-    if (percentage >= 60) return "🐠 Marine Advocate! Keep up the great work!";
-    if (percentage >= 40) return "🌊 Learning Navigator! You're on the right course!";
-    return "🐚 Ocean Explorer! Every journey starts with a single step!";
+    setIsComplete(false);
+    setAnswers([]);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -119,131 +117,160 @@ const EnvironmentalQuiz = () => {
     }
   };
 
-  if (quizComplete) {
+  const getScoreColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  if (isComplete) {
+    const percentage = Math.round((score / questions.length) * 100);
+    
     return (
       <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader className="text-center bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2]">
-          <CardTitle className="text-[#014F86] flex items-center justify-center gap-2">
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center justify-center gap-2 text-[#014F86]">
             <Award className="h-6 w-6" />
             Quiz Complete!
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 text-center">
-          <div className="mb-6">
-            <div className="text-4xl font-bold text-[#FF6F61] mb-2">
-              {score}/{questions.length}
+        <CardContent className="text-center space-y-6">
+          <div className="space-y-4">
+            <div className="text-6xl">🎉</div>
+            <div>
+              <div className={`text-4xl font-bold ${getScoreColor(percentage)}`}>
+                {score}/{questions.length}
+              </div>
+              <div className="text-gray-600">({percentage}% correct)</div>
             </div>
-            <p className="text-lg text-[#014F86] mb-4">{getScoreMessage()}</p>
-            <div className="text-sm text-gray-600 mb-4">
-              You earned <strong>{score * 10} points</strong> for your environmental knowledge!
+            
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg">
+              <p className="text-[#014F86] font-medium">
+                {percentage >= 80 ? "Excellent! You're a marine conservation expert!" :
+                 percentage >= 60 ? "Good job! Keep learning about marine conservation." :
+                 "Nice try! Every quiz helps you learn more about our oceans."}
+              </p>
             </div>
           </div>
-          
-          <div className="space-y-3">
+
+          <div className="flex gap-4">
             <Button 
-              onClick={resetQuiz}
-              className="w-full bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white"
+              onClick={handleRestart}
+              variant="outline"
+              className="flex-1"
             >
-              Take Quiz Again
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Try Again
             </Button>
-            <p className="text-xs text-gray-500">
-              <Brain className="h-4 w-4 inline mr-1" />
-              Powered by KakushIN LLM - Adaptive learning technology
-            </p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const currentQ = questions[currentQuestion];
+  const question = questions[currentQuestion];
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <div className="flex justify-between items-center mb-2">
-          <CardTitle className="text-[#014F86]">Environmental Quiz</CardTitle>
-          <Badge className={getDifficultyColor(currentQ.difficulty)}>
-            {currentQ.difficulty}
+        <div className="flex items-center justify-between mb-4">
+          <CardTitle className="flex items-center gap-2 text-[#014F86]">
+            <Brain className="h-6 w-6" />
+            {topic} Quiz
+          </CardTitle>
+          <Badge className={getDifficultyColor(question.difficulty)}>
+            {question.difficulty}
           </Badge>
         </div>
+        
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-gray-600">
             <span>Question {currentQuestion + 1} of {questions.length}</span>
-            <span>Score: {score}/{currentQuestion}</span>
+            <span>Score: {score}/{currentQuestion + (showExplanation ? 1 : 0)}</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="w-full" />
         </div>
       </CardHeader>
-      
-      <CardContent className="p-6">
-        {!showResult ? (
-          <div className="space-y-6">
-            <h3 className="text-lg font-medium text-[#014F86]">
-              {currentQ.question}
-            </h3>
-            
-            <div className="space-y-3">
-              {currentQ.options.map((option, index) => (
-                <Button
+
+      <CardContent className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-[#014F86] mb-4">
+            {question.question}
+          </h3>
+          
+          <div className="space-y-3">
+            {question.options.map((option, index) => {
+              let buttonClass = "w-full text-left p-4 border-2 rounded-lg transition-all duration-200 ";
+              
+              if (showExplanation) {
+                if (index === question.correctAnswer) {
+                  buttonClass += "border-green-500 bg-green-50 text-green-800";
+                } else if (index === selectedAnswer && index !== question.correctAnswer) {
+                  buttonClass += "border-red-500 bg-red-50 text-red-800";
+                } else {
+                  buttonClass += "border-gray-200 bg-gray-50 text-gray-600";
+                }
+              } else {
+                buttonClass += selectedAnswer === index
+                  ? "border-[#FF6F61] bg-[#FF6F61]/10"
+                  : "border-gray-200 hover:border-[#014F86] hover:bg-blue-50";
+              }
+              
+              return (
+                <button
                   key={index}
-                  variant={selectedAnswer === index ? "default" : "outline"}
-                  className={`w-full text-left justify-start p-4 h-auto ${
-                    selectedAnswer === index 
-                      ? "bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white" 
-                      : "hover:bg-gray-50"
-                  }`}
                   onClick={() => handleAnswerSelect(index)}
+                  disabled={showExplanation}
+                  className={buttonClass}
                 >
-                  <span className="font-medium mr-3">
-                    {String.fromCharCode(65 + index)}.
-                  </span>
-                  {option}
-                </Button>
-              ))}
-            </div>
-            
-            <Button
-              onClick={handleNextQuestion}
-              disabled={selectedAnswer === null}
-              className="w-full bg-[#014F86] hover:bg-[#014F86]/90 text-white"
-            >
-              {currentQuestion === questions.length - 1 ? "Finish Quiz" : "Next Question"}
-            </Button>
-            
-            {currentQ.aiGenerated && (
-              <p className="text-xs text-gray-500 text-center">
-                <Brain className="h-4 w-4 inline mr-1" />
-                Powered by KakushIN LLM
-              </p>
-            )}
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center text-sm font-medium">
+                      {String.fromCharCode(65 + index)}
+                    </div>
+                    <span>{option}</span>
+                    {showExplanation && index === question.correctAnswer && (
+                      <CheckCircle className="h-5 w-5 text-green-600 ml-auto" />
+                    )}
+                    {showExplanation && index === selectedAnswer && index !== question.correctAnswer && (
+                      <XCircle className="h-5 w-5 text-red-600 ml-auto" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 text-lg">
-              {selectedAnswer === currentQ.correctAnswer ? (
-                <>
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                  <span className="text-green-600 font-medium">Correct!</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-6 w-6 text-red-600" />
-                  <span className="text-red-600 font-medium">Incorrect</span>
-                </>
-              )}
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-700">{currentQ.explanation}</p>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              Moving to next question...
-            </div>
+        </div>
+
+        {showExplanation && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-[#014F86] mb-2">Explanation:</h4>
+            <p className="text-gray-700">{question.explanation}</p>
           </div>
         )}
+
+        <div className="flex justify-between">
+          <div className="text-sm text-gray-500">
+            {showExplanation ? "Great! Let's continue." : "Select an answer to continue"}
+          </div>
+          
+          {!showExplanation ? (
+            <Button 
+              onClick={handleSubmitAnswer}
+              disabled={selectedAnswer === null}
+              className="bg-[#FF6F61] hover:bg-[#FF6F61]/90"
+            >
+              Submit Answer
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleNextQuestion}
+              className="bg-[#014F86] hover:bg-[#014F86]/90"
+            >
+              {currentQuestion < questions.length - 1 ? "Next Question" : "Finish Quiz"}
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
