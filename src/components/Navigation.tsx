@@ -1,7 +1,7 @@
 
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, User, BarChart3, Settings } from "lucide-react";
+import { Home, Calendar, User, BarChart3, Users, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navigation = () => {
@@ -10,6 +10,7 @@ const Navigation = () => {
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
     { path: "/events", icon: Calendar, label: "Events" },
+    { path: "/social", icon: Users, label: "Community" },
     { path: "/profile", icon: User, label: "Profile" },
     { path: "/dashboard", icon: BarChart3, label: "Impact" },
     { path: "/admin", icon: Settings, label: "Admin" },

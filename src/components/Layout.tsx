@@ -32,6 +32,7 @@ const Layout = ({ children }: LayoutProps) => {
               {[
                 { href: "/", label: "Home" },
                 { href: "/events", label: "Events" },
+                { href: "/social", label: "Community" },
                 { href: "/profile", label: "Profile" },
                 { href: "/dashboard", label: "Impact" },
                 { href: "/gamification", label: "Rewards" },
