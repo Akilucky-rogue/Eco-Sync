@@ -1,7 +1,7 @@
 
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, Users, User, BarChart3, Trophy } from "lucide-react";
+import { Home, Calendar, Users, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navigation = () => {
@@ -11,13 +11,11 @@ const Navigation = () => {
     { path: "/", icon: Home, label: "Home" },
     { path: "/events", icon: Calendar, label: "Events" },
     { path: "/social", icon: Users, label: "Social" },
-    { path: "/gamification", icon: Trophy, label: "Rewards" },
-    { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 px-4 py-3 z-50 md:hidden shadow-xl">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 px-6 py-4 z-50 md:hidden shadow-xl">
       <NavigationMenu className="w-full max-w-none">
         <NavigationMenuList className="flex justify-between w-full">
           {navItems.map((item) => (
@@ -26,18 +24,18 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`flex flex-col items-center gap-1.5 h-auto py-2.5 px-3 transition-all duration-300 rounded-xl min-w-[65px] ${
+                  className={`flex flex-col items-center gap-2 h-auto py-3 px-4 transition-all duration-300 rounded-xl min-w-[80px] ${
                     location.pathname === item.path
                       ? "text-[#014F86] bg-gradient-to-br from-[#C5E4CF]/30 to-[#F6EFD2]/30 shadow-lg border border-[#C5E4CF]/50 transform scale-105"
                       : "text-gray-600 hover:text-[#014F86] hover:bg-gray-100/50"
                   }`}
                 >
-                  <div className={`p-2 rounded-lg transition-all duration-300 ${
+                  <div className={`p-2.5 rounded-lg transition-all duration-300 ${
                     location.pathname === item.path 
                       ? "bg-gradient-to-br from-[#FF6F61] to-[#E55B50] shadow-md" 
                       : "bg-transparent"
                   }`}>
-                    <item.icon className={`h-4 w-4 ${
+                    <item.icon className={`h-5 w-5 ${
                       location.pathname === item.path ? "text-white" : ""
                     }`} />
                   </div>
@@ -47,7 +45,7 @@ const Navigation = () => {
                     {item.label}
                   </span>
                   {location.pathname === item.path && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-[#FF6F61] rounded-full"></div>
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#FF6F61] rounded-full"></div>
                   )}
                 </Button>
               </Link>
