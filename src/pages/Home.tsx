@@ -14,16 +14,16 @@ const Home = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8 max-w-full overflow-hidden">
       {/* Enhanced Hero Section */}
       <HeroSection />
 
-      <div className="container mx-auto p-4 space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Enhanced Impact Stats */}
         <ImpactStats />
 
         {/* Weather Widget and Leaderboard Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           <WeatherWidget />
           <Leaderboard />
         </div>
@@ -31,8 +31,8 @@ const Home = () => {
         {/* Educational Quiz Section */}
         <div className="space-y-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-[#014F86] mb-2">Test Your Knowledge</h2>
-            <p className="text-gray-600">Learn about marine conservation while having fun!</p>
+            <h2 className="text-2xl font-bold text-brand-primary mb-2">Test Your Knowledge</h2>
+            <p className="text-muted-foreground">Learn about marine conservation while having fun!</p>
           </div>
           <EnvironmentalQuiz 
             topic="Marine Conservation"

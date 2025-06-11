@@ -15,37 +15,37 @@ const Navigation = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 px-6 py-4 z-50 md:hidden shadow-xl">
+    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border px-2 py-2 z-50 md:hidden shadow-xl">
       <NavigationMenu className="w-full max-w-none">
-        <NavigationMenuList className="flex justify-between w-full">
+        <NavigationMenuList className="flex justify-between w-full gap-1">
           {navItems.map((item) => (
-            <NavigationMenuItem key={item.path}>
-              <Link to={item.path}>
+            <NavigationMenuItem key={item.path} className="flex-1">
+              <Link to={item.path} className="w-full">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`flex flex-col items-center gap-2 h-auto py-3 px-4 transition-all duration-300 rounded-xl min-w-[80px] ${
+                  className={`flex flex-col items-center gap-1 h-auto py-2 px-1 transition-all duration-300 rounded-lg w-full min-w-0 ${
                     location.pathname === item.path
-                      ? "text-[#014F86] bg-gradient-to-br from-[#C5E4CF]/30 to-[#F6EFD2]/30 shadow-lg border border-[#C5E4CF]/50 transform scale-105"
-                      : "text-gray-600 hover:text-[#014F86] hover:bg-gray-100/50"
+                      ? "text-brand-primary bg-brand-green/20 shadow-md border border-brand-green/30"
+                      : "text-muted-foreground hover:text-brand-primary hover:bg-accent/50"
                   }`}
                 >
-                  <div className={`p-2.5 rounded-lg transition-all duration-300 ${
+                  <div className={`p-1.5 rounded-md transition-all duration-300 ${
                     location.pathname === item.path 
-                      ? "bg-gradient-to-br from-[#FF6F61] to-[#E55B50] shadow-md" 
+                      ? "bg-brand-accent shadow-sm" 
                       : "bg-transparent"
                   }`}>
-                    <item.icon className={`h-5 w-5 ${
+                    <item.icon className={`h-4 w-4 ${
                       location.pathname === item.path ? "text-white" : ""
                     }`} />
                   </div>
-                  <span className={`text-xs font-medium ${
+                  <span className={`text-xs font-medium truncate w-full text-center ${
                     location.pathname === item.path ? "font-semibold" : ""
                   }`}>
                     {item.label}
                   </span>
                   {location.pathname === item.path && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#FF6F61] rounded-full"></div>
+                    <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-brand-accent rounded-full"></div>
                   )}
                 </Button>
               </Link>
