@@ -27,27 +27,60 @@ const Layout = ({ children }: LayoutProps) => {
               <p className="text-xs text-blue-200">Marine Conservation Platform</p>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <nav className="flex space-x-8">
-              {[
-                { href: "/", label: "Home" },
-                { href: "/events", label: "Events" },
-                { href: "/events/manage", label: "Manage Events" },
-                { href: "/social", label: "Community" },
-                { href: "/profile", label: "Profile" },
-                { href: "/dashboard", label: "Impact" },
-                { href: "/gamification", label: "Rewards" },
-                { href: "/admin", label: "Admin" }
-              ].map((item) => (
-                <a 
-                  key={item.href}
-                  href={item.href} 
-                  className="relative px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group"
-                >
-                  <span className="relative z-10">{item.label}</span>
-                  <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-                </a>
-              ))}
+          <div className="flex items-center gap-8">
+            <nav className="flex items-center space-x-1">
+              {/* Main Navigation */}
+              <div className="flex space-x-1 bg-white/10 rounded-lg p-1">
+                {[
+                  { href: "/", label: "Home" },
+                  { href: "/events", label: "Events" },
+                  { href: "/social", label: "Community" }
+                ].map((item) => (
+                  <a 
+                    key={item.href}
+                    href={item.href} 
+                    className="relative px-4 py-2 rounded-lg hover:bg-white/15 transition-all duration-300 group text-sm font-medium"
+                  >
+                    <span className="relative z-10">{item.label}</span>
+                    <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                  </a>
+                ))}
+              </div>
+              
+              {/* Secondary Navigation */}
+              <div className="flex space-x-1 ml-4">
+                {[
+                  { href: "/gamification", label: "Rewards" },
+                  { href: "/dashboard", label: "Dashboard" }
+                ].map((item) => (
+                  <a 
+                    key={item.href}
+                    href={item.href} 
+                    className="relative px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group text-sm"
+                  >
+                    <span className="relative z-10">{item.label}</span>
+                    <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                  </a>
+                ))}
+              </div>
+
+              {/* Admin/Management Navigation */}
+              <div className="flex space-x-1 ml-4 border-l border-white/20 pl-4">
+                {[
+                  { href: "/events/manage", label: "Manage" },
+                  { href: "/profile", label: "Profile" },
+                  { href: "/admin", label: "Admin" }
+                ].map((item) => (
+                  <a 
+                    key={item.href}
+                    href={item.href} 
+                    className="relative px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group text-sm opacity-90 hover:opacity-100"
+                  >
+                    <span className="relative z-10">{item.label}</span>
+                    <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                  </a>
+                ))}
+              </div>
             </nav>
             <NotificationSystem />
           </div>

@@ -1,7 +1,7 @@
 
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, User, BarChart3, Users, Settings } from "lucide-react";
+import { Home, Calendar, Users, User, BarChart3, Trophy, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navigation = () => {
@@ -10,14 +10,14 @@ const Navigation = () => {
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
     { path: "/events", icon: Calendar, label: "Events" },
-    { path: "/social", icon: Users, label: "Community" },
+    { path: "/social", icon: Users, label: "Social" },
+    { path: "/gamification", icon: Trophy, label: "Rewards" },
+    { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
     { path: "/profile", icon: User, label: "Profile" },
-    { path: "/dashboard", icon: BarChart3, label: "Impact" },
-    { path: "/admin", icon: Settings, label: "Admin" },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 px-4 py-3 z-50 md:hidden shadow-xl">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 px-2 py-2 z-50 md:hidden shadow-xl">
       <NavigationMenu className="w-full max-w-none">
         <NavigationMenuList className="flex justify-around w-full space-x-0">
           {navItems.map((item) => (
@@ -26,7 +26,7 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`flex flex-col items-center gap-1 h-auto py-3 px-4 transition-all duration-300 rounded-xl ${
+                  className={`flex flex-col items-center gap-1 h-auto py-2 px-2 transition-all duration-300 rounded-xl min-w-[60px] ${
                     location.pathname === item.path
                       ? "text-[#014F86] bg-gradient-to-br from-[#C5E4CF]/30 to-[#F6EFD2]/30 shadow-lg border border-[#C5E4CF]/50 transform scale-105"
                       : "text-gray-600 hover:text-[#014F86] hover:bg-gray-100/50"
@@ -37,7 +37,7 @@ const Navigation = () => {
                       ? "bg-gradient-to-br from-[#FF6F61] to-[#E55B50] shadow-md" 
                       : "bg-transparent"
                   }`}>
-                    <item.icon className={`h-5 w-5 ${
+                    <item.icon className={`h-4 w-4 ${
                       location.pathname === item.path ? "text-white" : ""
                     }`} />
                   </div>
