@@ -12,7 +12,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-green-50/30">
       {/* Enhanced Desktop Header */}
       <header className="hidden md:block bg-gradient-to-r from-[#014F86] via-[#0066A3] to-[#014F86] text-white shadow-xl border-b border-blue-700/20">
-        <div className="container mx-auto flex items-center justify-between py-4 px-6">
+        <div className="container mx-auto flex items-center justify-between py-5 px-8">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <div className="w-12 h-12 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-6 transition-transform duration-300">
@@ -27,10 +27,10 @@ const Layout = ({ children }: LayoutProps) => {
               <p className="text-xs text-blue-200">Marine Conservation Platform</p>
             </div>
           </div>
-          <div className="flex items-center gap-8">
-            <nav className="flex items-center space-x-1">
+          <div className="flex items-center gap-10">
+            <nav className="flex items-center space-x-2">
               {/* Main Navigation */}
-              <div className="flex space-x-1 bg-white/10 rounded-lg p-1">
+              <div className="flex space-x-2 bg-white/10 rounded-lg p-1.5">
                 {[
                   { href: "/", label: "Home" },
                   { href: "/events", label: "Events" },
@@ -39,7 +39,7 @@ const Layout = ({ children }: LayoutProps) => {
                   <a 
                     key={item.href}
                     href={item.href} 
-                    className="relative px-4 py-2 rounded-lg hover:bg-white/15 transition-all duration-300 group text-sm font-medium"
+                    className="relative px-5 py-2.5 rounded-lg hover:bg-white/15 transition-all duration-300 group text-sm font-medium"
                   >
                     <span className="relative z-10">{item.label}</span>
                     <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
@@ -48,7 +48,7 @@ const Layout = ({ children }: LayoutProps) => {
               </div>
               
               {/* Secondary Navigation */}
-              <div className="flex space-x-1 ml-4">
+              <div className="flex space-x-2 ml-6">
                 {[
                   { href: "/gamification", label: "Rewards" },
                   { href: "/dashboard", label: "Dashboard" }
@@ -56,7 +56,7 @@ const Layout = ({ children }: LayoutProps) => {
                   <a 
                     key={item.href}
                     href={item.href} 
-                    className="relative px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group text-sm"
+                    className="relative px-4 py-2.5 rounded-lg hover:bg-white/10 transition-all duration-300 group text-sm"
                   >
                     <span className="relative z-10">{item.label}</span>
                     <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
@@ -65,7 +65,7 @@ const Layout = ({ children }: LayoutProps) => {
               </div>
 
               {/* Admin/Management Navigation */}
-              <div className="flex space-x-1 ml-4 border-l border-white/20 pl-4">
+              <div className="flex space-x-2 ml-6 border-l border-white/20 pl-6">
                 {[
                   { href: "/events/manage", label: "Manage" },
                   { href: "/profile", label: "Profile" },
@@ -74,7 +74,7 @@ const Layout = ({ children }: LayoutProps) => {
                   <a 
                     key={item.href}
                     href={item.href} 
-                    className="relative px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 group text-sm opacity-90 hover:opacity-100"
+                    className="relative px-4 py-2.5 rounded-lg hover:bg-white/10 transition-all duration-300 group text-sm opacity-90 hover:opacity-100"
                   >
                     <span className="relative z-10">{item.label}</span>
                     <div className="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
@@ -107,7 +107,7 @@ const Layout = ({ children }: LayoutProps) => {
       </header>
 
       {/* Main Content with enhanced spacing */}
-      <main className="pb-24 md:pb-8 pt-6">
+      <main className="pb-28 md:pb-8 pt-6">
         {children}
       </main>
 
