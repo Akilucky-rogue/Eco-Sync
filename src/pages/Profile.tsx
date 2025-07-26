@@ -5,8 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Award, Calendar, TrendingUp, Users, Brain, Star } from "lucide-react";
+import { Award, Calendar, TrendingUp, Users, Brain, Star, Edit, Settings } from "lucide-react";
 import EnvironmentalQuiz from "@/components/EnvironmentalQuiz";
+import UserAvatar from "@/components/UserAvatar";
+import StatCard from "@/components/StatCard";
+import ActivityFeed from "@/components/ActivityFeed";
 
 const Profile = () => {
   const [showQuiz, setShowQuiz] = useState(false);
@@ -64,26 +67,45 @@ const Profile = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      {/* Profile Header */}
-      <Card className="bg-gradient-to-r from-[#014F86] to-[#FF6F61] text-white">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold">AC</span>
-            </div>
+      {/* Enhanced Profile Header */}
+      <Card className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white overflow-hidden">
+        <CardContent className="p-6 relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+          
+          <div className="relative flex items-center gap-4">
+            <UserAvatar 
+              name={userStats.name}
+              level={userStats.level}
+              size="lg"
+              className="ring-4 ring-white/20"
+            />
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">{userStats.name}</h1>
-              <p className="opacity-90">Level {userStats.level} Eco Warrior</p>
-              <div className="mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="text-2xl font-bold">{userStats.name}</h1>
+                <div className="flex gap-2">
+                  <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <p className="opacity-90 mb-3">Level {userStats.level} Eco Warrior • Marine Conservation Champion</p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progress to Level {userStats.level + 1}</span>
+                  <span>{userStats.points}/{userStats.nextLevelPoints} XP</span>
+                </div>
                 <Progress value={levelProgress} className="h-2 bg-white/20" />
-                <p className="text-sm mt-1 opacity-80">
-                  {userStats.points}/{userStats.nextLevelPoints} points to next level
-                </p>
               </div>
             </div>
             <div className="text-right">
               <div className="text-sm opacity-80">Environmental Score</div>
-              <div className="text-2xl font-bold">{userStats.environmentalScore}%</div>
+              <div className="text-3xl font-bold">{userStats.environmentalScore}%</div>
+              <Badge className="bg-brand-green text-white mt-1">Excellent</Badge>
             </div>
           </div>
         </CardContent>
@@ -107,46 +129,42 @@ const Profile = () => {
         </Button>
       </div>
 
-      {/* Stats Grid */}
+      {/* Enhanced Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Calendar className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{userStats.cleanupCount}</div>
-            <div className="text-xs text-gray-600">Cleanups</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{userStats.wasteCollected}kg</div>
-            <div className="text-xs text-gray-600">Waste Removed</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Award className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{userStats.points}</div>
-            <div className="text-xs text-gray-600">Points</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Users className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{userStats.volunteersHelped}</div>
-            <div className="text-xs text-gray-600">Team Members</div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Cleanups Joined"
+          value={userStats.cleanupCount}
+          icon={Calendar}
+          variant="default"
+        />
+        <StatCard
+          title="Waste Removed"
+          value={userStats.wasteCollected}
+          subtitle="kg"
+          icon={TrendingUp}
+          variant="success"
+        />
+        <StatCard
+          title="Points Earned"
+          value={userStats.points}
+          icon={Award}
+          trend={{ value: 15, label: "this week", direction: "up" }}
+          variant="warning"
+        />
+        <StatCard
+          title="Team Members"
+          value={userStats.volunteersHelped}
+          icon={Users}
+          variant="default"
+        />
       </div>
 
       <Tabs defaultValue="badges" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="badges">Badges & Achievements</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>
           <TabsTrigger value="team">My Team</TabsTrigger>
+          <TabsTrigger value="stats">Detailed Stats</TabsTrigger>
         </TabsList>
 
         <TabsContent value="badges" className="space-y-4">
@@ -253,6 +271,57 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="stats" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-brand-primary">Environmental Impact</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span>CO₂ Prevented</span>
+                  <span className="font-bold">145 kg</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Marine Life Saved</span>
+                  <span className="font-bold">~200 animals</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Microplastics Removed</span>
+                  <span className="font-bold">12,000 pieces</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Beach Area Cleaned</span>
+                  <span className="font-bold">2.3 km²</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <ActivityFeed 
+              activities={[
+                {
+                  id: '1',
+                  type: 'cleanup',
+                  user: { name: userStats.name },
+                  content: 'Completed cleanup at Santa Monica Beach',
+                  location: 'Santa Monica Beach',
+                  timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                  metadata: { points: 52 }
+                },
+                {
+                  id: '2',
+                  type: 'achievement',
+                  user: { name: userStats.name },
+                  content: 'Earned Team Player badge',
+                  timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                  metadata: { points: 100 }
+                }
+              ]}
+              showHeader={false}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

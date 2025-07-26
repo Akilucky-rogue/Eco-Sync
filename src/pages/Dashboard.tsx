@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, Users, Award, Recycle, Calendar, MapPin } from "lucide-react";
+import StatCard from "@/components/StatCard";
+import ActivityFeed from "@/components/ActivityFeed";
+import QuickActions from "@/components/QuickActions";
 
 const Dashboard = () => {
   const overallStats = {
@@ -53,46 +56,49 @@ const Dashboard = () => {
         <p className="text-gray-600">Track our collective environmental impact across India's coastline and community growth</p>
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Recycle className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{overallStats.totalWasteCollected}</div>
-            <div className="text-xs text-gray-600">kg Waste Collected</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Users className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{overallStats.totalVolunteers}</div>
-            <div className="text-xs text-gray-600">Active Volunteers</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Calendar className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{overallStats.eventsCompleted}</div>
-            <div className="text-xs text-gray-600">Events Completed</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <MapPin className="h-8 w-8 text-[#FF6F61] mx-auto mb-2" />
-            <div className="text-2xl font-bold text-[#014F86]">{overallStats.coastlineRestored}</div>
-            <div className="text-xs text-gray-600">km Coastline Restored</div>
-          </CardContent>
-        </Card>
+      {/* Quick Actions */}
+      <QuickActions variant="horizontal" className="mb-6" />
+
+      {/* Enhanced Overview Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Waste Collected"
+          value={overallStats.totalWasteCollected}
+          subtitle="kg"
+          icon={Recycle}
+          trend={{ value: 12, label: "vs last month", direction: "up" }}
+          variant="success"
+        />
+        <StatCard
+          title="Active Volunteers"
+          value={overallStats.totalVolunteers}
+          icon={Users}
+          trend={{ value: 8, label: "this week", direction: "up" }}
+          variant="default"
+        />
+        <StatCard
+          title="Events Completed"
+          value={overallStats.eventsCompleted}
+          icon={Calendar}
+          trend={{ value: 15, label: "this month", direction: "up" }}
+          variant="warning"
+        />
+        <StatCard
+          title="Coastline Restored"
+          value={overallStats.coastlineRestored}
+          subtitle="km"
+          icon={MapPin}
+          trend={{ value: 5, label: "this quarter", direction: "up" }}
+          variant="success"
+        />
       </div>
 
       <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="breakdown">Waste Breakdown</TabsTrigger>
-          <TabsTrigger value="locations">Top Locations</TabsTrigger>
+          <TabsTrigger value="breakdown">Waste Data</TabsTrigger>
+          <TabsTrigger value="locations">Locations</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-4">
@@ -190,6 +196,49 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-4">
+          <ActivityFeed 
+            activities={[
+              {
+                id: '1',
+                type: 'cleanup',
+                user: { name: 'Priya Sharma', avatar: '' },
+                content: 'Completed cleanup at Marina Beach and collected 12kg of plastic waste',
+                location: 'Chennai Marina Beach',
+                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                metadata: { points: 120, participants: 15 }
+              },
+              {
+                id: '2',
+                type: 'achievement',
+                user: { name: 'Raj Patel' },
+                content: 'Earned the "Waste Warrior" badge for collecting 50kg of waste',
+                timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+                metadata: { points: 250 }
+              },
+              {
+                id: '3',
+                type: 'team_join',
+                user: { name: 'Anisha Gupta' },
+                content: 'Joined the Mumbai Marine Guardians team',
+                location: 'Mumbai Marine Drive',
+                timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+                metadata: { participants: 24 }
+              },
+              {
+                id: '4',
+                type: 'photo',
+                user: { name: 'Vikram Singh' },
+                content: 'Shared before/after photos from Goa beach cleanup',
+                location: 'Calangute Beach, Goa',
+                timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
+                metadata: { likes: 42 }
+              }
+            ]}
+            limit={8}
+          />
         </TabsContent>
       </Tabs>
     </div>
