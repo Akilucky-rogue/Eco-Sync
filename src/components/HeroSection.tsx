@@ -18,7 +18,7 @@ const HeroSection = () => {
           </Badge>
         </div>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-          Welcome to EcoSync India
+          Welcome to Eco-Sanjivani
         </h1>
         <p className="text-xl opacity-90 mb-6 max-w-2xl">
           Join our community in protecting India's marine ecosystems and coastal heritage through collaborative cleanup efforts
