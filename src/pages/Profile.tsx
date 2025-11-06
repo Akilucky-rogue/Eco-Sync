@@ -176,7 +176,17 @@ const Profile = () => {
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    onClick={() => {
+                      toast({
+                        title: "Settings",
+                        description: "Profile settings coming soon!",
+                      });
+                    }}
+                  >
                     <Settings className="h-4 w-4" />
                   </Button>
                 </div>
