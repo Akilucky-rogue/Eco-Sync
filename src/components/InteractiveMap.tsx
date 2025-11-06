@@ -3,7 +3,8 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Loader2, List, RefreshCw, Navigation } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface EventLocation {
@@ -41,6 +42,25 @@ const InteractiveMap = () => {
   const [events, setEvents] = useState<EventLocation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [showFallback, setShowFallback] = useState(false);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  // Get user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
+          setUserLocation(coords);
+          console.log('User location:', coords);
+        },
+        (error) => {
+          console.log('Location access denied or unavailable:', error);
+        }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     loadEvents();
@@ -169,22 +189,27 @@ const InteractiveMap = () => {
           
           if (error) {
             console.error('Token fetch error:', error);
+            setShowFallback(true);
             throw error;
           }
           if (!data?.token) {
             console.error('No token received:', data);
+            setShowFallback(true);
             throw new Error('No Mapbox token received');
           }
 
           console.log('Token received, initializing map...');
           mapboxgl.accessToken = data.token;
 
-          // Initialize map centered on India
+          // Initialize map centered on user location or India
+          const initialCenter = userLocation || [78.9629, 20.5937];
+          const initialZoom = userLocation ? 8 : 4.5;
+          
           map.current = new mapboxgl.Map({
             container: mapContainer.current!,
             style: 'mapbox://styles/mapbox/light-v11',
-            center: [78.9629, 20.5937], // Center of India
-            zoom: 4.5,
+            center: initialCenter,
+            zoom: initialZoom,
             projection: 'mercator' as any,
           });
 
@@ -197,6 +222,28 @@ const InteractiveMap = () => {
           );
 
           setLoading(false);
+        }
+
+        // Add user location marker
+        if (userLocation && map.current) {
+          if (userMarkerRef.current) {
+            userMarkerRef.current.remove();
+          }
+          
+          const userEl = document.createElement('div');
+          userEl.style.cssText = `
+            background: #4285F4;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          `;
+          
+          userMarkerRef.current = new mapboxgl.Marker(userEl)
+            .setLngLat(userLocation)
+            .setPopup(new mapboxgl.Popup().setHTML('<div style="padding: 4px 8px;">Your Location</div>'))
+            .addTo(map.current);
         }
 
         // Clear existing markers
@@ -289,6 +336,7 @@ const InteractiveMap = () => {
       } catch (error: any) {
         console.error('Error initializing map:', error);
         setError(error.message);
+        setShowFallback(true);
         setLoading(false);
       }
     };
@@ -301,9 +349,17 @@ const InteractiveMap = () => {
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current.clear();
+      userMarkerRef.current?.remove();
       map.current?.remove();
     };
   }, []);
+
+  const retryMapLoad = () => {
+    setError(null);
+    setShowFallback(false);
+    setLoading(true);
+    loadEvents();
+  };
 
   return (
     <Card className="overflow-hidden shadow-xl border-0">
@@ -338,11 +394,44 @@ const InteractiveMap = () => {
                 <p className="text-sm text-gray-600">Loading map...</p>
               </div>
             </div>
-          ) : error ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100">
-              <div className="text-center bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border">
-                <p className="text-[#014F86] font-semibold mb-2">Unable to load map</p>
-                <p className="text-sm text-gray-600">{error}</p>
+          ) : showFallback || error ? (
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100 overflow-y-auto">
+              <div className="p-6">
+                <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border mb-4 text-center">
+                  <MapPin className="h-8 w-8 text-[#014F86] mx-auto mb-2" />
+                  <p className="text-[#014F86] font-semibold mb-1">Map unavailable</p>
+                  <p className="text-xs text-gray-600 mb-3">{error || "Unable to load interactive map"}</p>
+                  <Button onClick={retryMapLoad} variant="outline" size="sm" className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    Retry Map
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-[#014F86] font-semibold mb-2">
+                    <List className="h-4 w-4" />
+                    Upcoming Events ({events.length})
+                  </div>
+                  {events.map(event => (
+                    <div key={event.id} className="bg-white rounded-lg p-4 shadow border">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-semibold text-[#014F86] text-sm">{event.name}</h4>
+                        <Badge className="bg-[#FF6F61] text-white text-xs">{event.points_reward} pts</Badge>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
+                        <Navigation className="h-3 w-3" />
+                        {event.location}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs">{event.category}</Badge>
+                        <Badge variant="outline" className="text-xs">{event.difficulty}</Badge>
+                        <span className="text-xs text-gray-600">
+                          {event.current_volunteers}/{event.max_volunteers} volunteers
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
