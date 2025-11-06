@@ -15,7 +15,7 @@ const Profile = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   
   const userStats = {
-    name: "Alex Chen",
+    name: "Akshat Vora",
     level: 5,
     points: 1247,
     nextLevelPoints: 1500,
