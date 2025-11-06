@@ -13,6 +13,7 @@ import UserAvatar from "@/components/UserAvatar";
 import StatCard from "@/components/StatCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import EditProfileDialog from "@/components/EditProfileDialog";
+import SettingsDialog from "@/components/SettingsDialog";
 import PageLoader from "@/components/PageLoader";
 import ErrorMessage from "@/components/ErrorMessage";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ const Profile = () => {
   const { toast } = useToast();
   const [showQuiz, setShowQuiz] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   
   const [profile, setProfile] = useState<any>(null);
@@ -180,12 +182,7 @@ const Profile = () => {
                     variant="secondary" 
                     size="sm" 
                     className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                    onClick={() => {
-                      toast({
-                        title: "Settings",
-                        description: "Profile settings coming soon!",
-                      });
-                    }}
+                    onClick={() => setShowSettingsDialog(true)}
                   >
                     <Settings className="h-4 w-4" />
                   </Button>
@@ -401,6 +398,11 @@ const Profile = () => {
           onProfileUpdated={loadProfileData}
         />
       )}
+
+      <SettingsDialog
+        open={showSettingsDialog}
+        onOpenChange={setShowSettingsDialog}
+      />
     </div>
   );
 };
