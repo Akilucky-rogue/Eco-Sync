@@ -13,6 +13,7 @@ import Gamification from "./pages/Gamification";
 import Social from "./pages/Social";
 import NotFound from "./pages/NotFound";
 import EventManagement from "./pages/EventManagement";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -22,19 +23,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/events/manage" element={<EventManagement />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/gamification" element={<Gamification />} />
-            <Route path="/social" element={<Social />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<Layout><Home /></Layout>} />
+          <Route path="/events" element={<Layout><Events /></Layout>} />
+          <Route path="/events/manage" element={<Layout><EventManagement /></Layout>} />
+          <Route path="/profile" element={<Layout><Profile /></Layout>} />
+          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+          <Route path="/gamification" element={<Layout><Gamification /></Layout>} />
+          <Route path="/social" element={<Layout><Social /></Layout>} />
+          <Route path="/admin" element={<Layout><Admin /></Layout>} />
+          <Route path="*" element={<Layout><NotFound /></Layout>} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
