@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, Loader2, Trash2, Recycle, Leaf, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, Loader2, Trash2, Recycle, Leaf, AlertCircle, CheckCircle, Box } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,13 @@ interface ClassificationResult {
   subCategory: string;
   recyclable: boolean;
   estimatedWeight: string;
+  volumeEstimation: {
+    estimatedVolume: string;
+    dimensions: string;
+    sizeCategory: 'small' | 'medium' | 'large' | 'extra-large';
+    confidenceLevel: number;
+    estimationMethod: string;
+  };
   environmentalImpact: string;
   disposalRecommendation: string;
 }
@@ -306,6 +313,64 @@ const WasteClassifier = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Volume Estimation Section */}
+              {result.volumeEstimation && (
+                <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-2 bg-indigo-100 rounded-lg">
+                        <Box className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-indigo-900">Volume Analysis</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-500 mb-1">Estimated Volume</p>
+                        <p className="text-lg font-bold text-indigo-900">{result.volumeEstimation.estimatedVolume}</p>
+                      </div>
+                      
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-500 mb-1">Dimensions</p>
+                        <p className="text-lg font-bold text-indigo-900">{result.volumeEstimation.dimensions}</p>
+                      </div>
+                      
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-500 mb-1">Size Category</p>
+                        <Badge 
+                          variant={
+                            result.volumeEstimation.sizeCategory === 'small' ? 'secondary' :
+                            result.volumeEstimation.sizeCategory === 'medium' ? 'default' :
+                            result.volumeEstimation.sizeCategory === 'large' ? 'destructive' : 'outline'
+                          }
+                          className="text-sm capitalize"
+                        >
+                          {result.volumeEstimation.sizeCategory}
+                        </Badge>
+                      </div>
+                      
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-500 mb-1">Volume Confidence</p>
+                        <div className="flex items-center gap-2">
+                          <Progress value={result.volumeEstimation.confidenceLevel * 100} className="flex-1 h-2" />
+                          <span className="text-sm font-semibold text-indigo-900">
+                            {(result.volumeEstimation.confidenceLevel * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-indigo-200 bg-white/60 rounded-lg p-3">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Estimation Method</p>
+                      <p className="text-sm text-gray-700">{result.volumeEstimation.estimationMethod}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="grid grid-cols-1 gap-4">
 
                 <Card className="md:col-span-2">
                   <CardContent className="pt-6">

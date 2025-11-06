@@ -47,16 +47,30 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `Analyze this image of waste and classify it. Return ONLY valid JSON in this exact format:
+                text: `Analyze this image of waste and classify it with volume estimation. Return ONLY valid JSON in this exact format:
 {
   "wasteType": "plastic" | "metal" | "organic" | "glass" | "paper" | "electronic" | "textile" | "mixed" | "other",
   "confidence": 0.95,
   "subCategory": "specific type like PET bottle, aluminum can, etc",
   "recyclable": true | false,
   "estimatedWeight": "approximate weight in kg",
+  "volumeEstimation": {
+    "estimatedVolume": "volume in liters or cubic meters (e.g., '2.5 liters' or '0.5 m³')",
+    "dimensions": "approximate dimensions (e.g., '30cm x 20cm x 15cm')",
+    "sizeCategory": "small" | "medium" | "large" | "extra-large",
+    "confidenceLevel": 0.85,
+    "estimationMethod": "brief explanation of how volume was estimated"
+  },
   "environmentalImpact": "brief description of environmental impact",
   "disposalRecommendation": "how to properly dispose of this waste"
 }
+
+For volume estimation:
+- Analyze spatial relationships, shadows, and reference objects in the image
+- Consider typical sizes of identified waste items
+- Estimate physical dimensions based on common object sizes
+- Provide a confidence level for your volume estimation
+- Explain your estimation method briefly
 
 Be precise and provide actionable information for waste management.`
               },
