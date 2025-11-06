@@ -2,6 +2,9 @@
 
 **Comprehensive Developer Guide**
 
+Version: 1.0.0  
+Last Updated: 2025
+
 ---
 
 ## Table of Contents
@@ -11,70 +14,89 @@
 3. [Backend Architecture](#backend-architecture)
 4. [Database Schema](#database-schema)
 5. [Authentication System](#authentication-system)
-6. [Component Library](#component-library)
-7. [API Reference](#api-reference)
-8. [State Management](#state-management)
-9. [Routing & Navigation](#routing--navigation)
-10. [Styling & Design System](#styling--design-system)
-11. [Testing Strategy](#testing-strategy)
-12. [Performance Optimization](#performance-optimization)
-13. [Security Guidelines](#security-guidelines)
-14. [Deployment Guide](#deployment-guide)
-15. [AI/ML Integration Guide](#aiml-integration-guide)
+6. [Real-time Features](#real-time-features)
+7. [AI Integration](#ai-integration)
+8. [Component Library](#component-library)
+9. [API Reference](#api-reference)
+10. [State Management](#state-management)
+11. [Styling & Design System](#styling--design-system)
+12. [Security Guidelines](#security-guidelines)
+13. [Deployment Guide](#deployment-guide)
+14. [Testing Strategy](#testing-strategy)
+15. [Performance Optimization](#performance-optimization)
 16. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Architecture Overview
 
-### High-Level Architecture
+### High-Level System Design
+
+Eco-Sanjivani is built as a modern full-stack web application using React for the frontend and Lovable Cloud (Supabase) for the backend infrastructure.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Client Browser                        │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │           React Application (SPA)                  │  │
-│  │  ┌─────────────────────────────────────────────┐  │  │
-│  │  │  Components │ Pages │ Hooks │ Utils         │  │  │
-│  │  └─────────────────────────────────────────────┘  │  │
-│  └───────────────────────────────────────────────────┘  │
-└──────────────────────┬──────────────────────────────────┘
-                       │ HTTPS/WebSocket
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│                  Lovable Cloud (Supabase)                │
-│  ┌────────────┬────────────┬──────────┬──────────────┐  │
-│  │ PostgreSQL │ Auth       │ Storage  │ Edge Funcs   │  │
-│  │ + RLS      │ System     │ Buckets  │ (Deno)       │  │
-│  └────────────┴────────────┴──────────┴──────────────┘  │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                      Client Layer                             │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │          React 18 + TypeScript + Vite                   │  │
+│  │  ┌──────────────────────────────────────────────────┐  │  │
+│  │  │  Components │ Pages │ Hooks │ Utils │ Assets    │  │  │
+│  │  │  Real-time Subscriptions │ AI Integration        │  │  │
+│  │  └──────────────────────────────────────────────────┘  │  │
+│  └────────────────────────────────────────────────────────┘  │
+└───────────────────────────┬──────────────────────────────────┘
+                            │ HTTPS/WebSocket
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    Lovable Cloud Platform                     │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                Supabase Services                      │   │
+│  │  ┌─────────┬─────────┬─────────┬──────────────────┐ │   │
+│  │  │PostgreSQL│  Auth   │ Storage │  Edge Functions  │ │   │
+│  │  │   +RLS   │ System  │ Buckets │   (Deno)         │ │   │
+│  │  │ Realtime │Sessions │ Avatars │ AI/Mapbox APIs   │ │   │
+│  │  └─────────┴─────────┴─────────┴──────────────────┘ │   │
+│  └──────────────────────────────────────────────────────┘   │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│                   External Services                           │
+│  ┌─────────────────────┬──────────────────────────────────┐  │
+│  │   Mapbox GL JS      │   Lovable AI (Gemini 2.5)       │  │
+│  │   Maps & Geocoding  │   Waste Classification           │  │
+│  └─────────────────────┴──────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ### Technology Stack
 
-#### Frontend
+#### Frontend Technologies
 - **Framework**: React 18.3.1
-- **Language**: TypeScript
-- **Build Tool**: Vite
+- **Language**: TypeScript (strict mode)
+- **Build Tool**: Vite 5.x
+- **Routing**: React Router v6.26.2
 - **Styling**: Tailwind CSS 3.4
-- **Routing**: React Router v6
-- **State Management**: React Query (TanStack Query)
-- **Form Handling**: React Hook Form + Zod
-- **UI Components**: Radix UI primitives
+- **UI Components**: Radix UI primitives via shadcn/ui
+- **State Management**: React Query (TanStack Query v5)
+- **Form Handling**: React Hook Form + Zod validation
+- **Data Visualization**: Recharts
+- **Maps**: Mapbox GL JS 3.16
 
-#### Backend (Lovable Cloud)
+#### Backend Technologies (Lovable Cloud)
 - **Database**: PostgreSQL 15+
-- **Auth**: Supabase Auth
+- **Authentication**: Supabase Auth
 - **Storage**: Supabase Storage
-- **Functions**: Deno Edge Functions
+- **Edge Functions**: Deno runtime
 - **Real-time**: Supabase Realtime
 - **API**: Auto-generated REST API
 
-#### DevOps
+#### Development Tools
 - **Version Control**: Git + GitHub
+- **Package Manager**: npm
+- **Linting**: ESLint
+- **Type Checking**: TypeScript compiler
 - **CI/CD**: Automated via Lovable
-- **Hosting**: Lovable Cloud
-- **Monitoring**: Built-in analytics
 
 ---
 
@@ -84,124 +106,206 @@
 
 ```
 src/
-├── components/              # Reusable React components
-│   ├── ui/                 # Base UI components (Radix)
+├── components/                 # React components
+│   ├── ui/                    # Base UI components (shadcn/ui)
 │   │   ├── button.tsx
 │   │   ├── card.tsx
 │   │   ├── dialog.tsx
-│   │   └── ...
-│   ├── AchievementBadge.tsx
-│   ├── ActivityFeed.tsx
-│   ├── EventCard.tsx
-│   ├── InteractiveMap.tsx
-│   ├── Leaderboard.tsx
-│   └── ...
-├── pages/                   # Page-level components
-│   ├── Home.tsx
-│   ├── Events.tsx
-│   ├── Dashboard.tsx
-│   ├── Profile.tsx
-│   ├── Auth.tsx
-│   └── ...
-├── hooks/                   # Custom React hooks
-│   ├── useAuth.ts
-│   ├── useRateLimit.ts
-│   └── use-mobile.tsx
-├── integrations/            # External service integrations
+│   │   ├── input.tsx
+│   │   ├── badge.tsx
+│   │   ├── tabs.tsx
+│   │   └── ... (60+ components)
+│   │
+│   ├── AchievementBadge.tsx   # Badge display component
+│   ├── ActivityFeed.tsx       # User activity timeline
+│   ├── DesktopHeader.tsx      # Desktop navigation
+│   ├── EditProfileDialog.tsx  # Profile editing modal
+│   ├── EnvironmentalQuiz.tsx  # Educational quizzes
+│   ├── ErrorMessage.tsx       # Error state component
+│   ├── EventCard.tsx          # Event display card
+│   ├── EventCheckIn.tsx       # Digital check-in system
+│   ├── EventCreationForm.tsx  # Event creation with validation
+│   ├── EventStatusUpdates.tsx # Real-time event updates
+│   ├── HeroSection.tsx        # Landing page hero
+│   ├── ImpactStats.tsx        # Environmental impact metrics
+│   ├── InteractiveMap.tsx     # Real-time Mapbox map
+│   ├── Layout.tsx             # App layout wrapper
+│   ├── Leaderboard.tsx        # User rankings
+│   ├── LoadingSpinner.tsx     # Loading states
+│   ├── Navigation.tsx         # Mobile navigation
+│   ├── NotificationSystem.tsx # Toast notifications
+│   ├── PageLoader.tsx         # Page-level loading
+│   ├── PhotoShareCard.tsx     # Photo sharing component
+│   ├── QuickActions.tsx       # Quick action buttons
+│   ├── RewardSystem.tsx       # Rewards display
+│   ├── SecurityErrorBoundary.tsx # Error boundary
+│   ├── SocialFeed.tsx         # Community feed
+│   ├── StatCard.tsx           # Statistics card
+│   ├── StreakCounter.tsx      # Streak tracking
+│   ├── TeamCard.tsx           # Team display
+│   ├── UpcomingEvents.tsx     # Event list
+│   ├── UserAvatar.tsx         # User avatar component
+│   ├── VolunteerTestimonials.tsx # Success stories
+│   ├── WasteClassifier.tsx    # AI waste classification
+│   └── WeatherWidget.tsx      # Weather display
+│
+├── pages/                     # Page-level components
+│   ├── Home.tsx              # Landing page
+│   ├── Events.tsx            # Events browsing
+│   ├── Dashboard.tsx         # User dashboard
+│   ├── Profile.tsx           # User profile
+│   ├── Auth.tsx              # Authentication
+│   ├── Gamification.tsx      # Gamification hub
+│   ├── Social.tsx            # Social feed
+│   ├── WasteClassification.tsx # Waste classifier
+│   ├── EventManagement.tsx   # Event management
+│   └── Admin.tsx             # Admin panel
+│
+├── hooks/                     # Custom React hooks
+│   ├── useAuth.ts            # Authentication hook
+│   ├── useRateLimit.ts       # Rate limiting hook
+│   ├── use-mobile.tsx        # Mobile detection
+│   └── use-toast.ts          # Toast notifications
+│
+├── integrations/              # External service integrations
 │   └── supabase/
-│       ├── client.ts       # Supabase client
-│       └── types.ts        # Generated TypeScript types
-├── lib/                     # Utility functions
-│   └── utils.ts
-├── index.css               # Global styles & CSS variables
-├── App.tsx                 # Root component
-└── main.tsx                # Entry point
+│       ├── client.ts         # Supabase client instance
+│       └── types.ts          # Generated TypeScript types
+│
+├── lib/                       # Utility functions
+│   └── utils.ts              # Helper functions
+│
+├── index.css                  # Global styles & design tokens
+├── App.tsx                    # Root component
+├── main.tsx                   # Application entry point
+└── vite-env.d.ts             # Vite type definitions
 ```
 
 ### Component Design Principles
 
 #### 1. Single Responsibility
-Each component should do one thing well.
+Each component should have one clear purpose.
 
 ```typescript
 // ❌ Bad: Component doing too much
 const UserDashboard = () => {
-  // Fetching data, rendering stats, handling events, etc.
+  // Fetching, rendering, event handling all in one
+  const [data, setData] = useState();
+  // ... 200 lines of mixed logic
 }
 
-// ✅ Good: Split into focused components
+// ✅ Good: Separated concerns
 const Dashboard = () => (
-  <>
+  <Layout>
+    <DashboardHeader />
     <UserStats />
     <UpcomingEvents />
     <ActivityFeed />
-  </>
-)
+  </Layout>
+);
 ```
 
-#### 2. Composition Over Inheritance
-Build complex UIs by composing simple components.
-
-```typescript
-// ✅ Composable Card component
-<Card>
-  <CardHeader>
-    <CardTitle>Event Title</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <EventDetails />
-  </CardContent>
-  <CardFooter>
-    <Button>Join Event</Button>
-  </CardFooter>
-</Card>
-```
-
-#### 3. Props Interface
-Always define TypeScript interfaces for props.
+#### 2. Type Safety
+Always define TypeScript interfaces.
 
 ```typescript
 interface EventCardProps {
   event: {
     id: string;
-    title: string;
-    date: Date;
+    name: string;
+    date: string;
     location: string;
+    current_volunteers: number;
+    max_volunteers: number;
   };
-  onJoin?: () => void;
-  variant?: 'default' | 'compact';
+  onJoin?: (eventId: string) => void;
+  isJoined?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({ 
   event, 
   onJoin,
-  variant = 'default'
+  isJoined = false 
 }) => {
   // Component implementation
-}
+};
+```
+
+#### 3. Composition Over Inheritance
+Build complex UIs through composition.
+
+```typescript
+// ✅ Composable components
+<Card>
+  <CardHeader>
+    <CardTitle>Beach Cleanup</CardTitle>
+    <CardDescription>Marina Beach, Chennai</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <EventDetails event={event} />
+  </CardContent>
+  <CardFooter>
+    <Button onClick={handleJoin}>Join Event</Button>
+  </CardFooter>
+</Card>
 ```
 
 ### Custom Hooks
 
 #### useAuth Hook
-Manages authentication state.
+Manages authentication state throughout the app.
 
 ```typescript
 import { useAuth } from '@/hooks/useAuth';
 
-function ProtectedComponent() {
+function ProtectedPage() {
   const { user, session, loading, signOut } = useAuth();
   
-  if (loading) return <Spinner />;
+  if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/auth" />;
   
   return (
     <div>
-      <p>Welcome {user.email}</p>
-      <button onClick={signOut}>Logout</button>
+      <h1>Welcome {user.email}</h1>
+      <Button onClick={signOut}>Sign Out</Button>
     </div>
   );
 }
+```
+
+**Hook Implementation:**
+```typescript
+export const useAuth = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  return { user, session, loading, signOut };
+};
 ```
 
 #### useRateLimit Hook
@@ -213,16 +317,18 @@ import { useRateLimit } from '@/hooks/useRateLimit';
 function CommentForm() {
   const { checkLimit, resetLimit } = useRateLimit('comments', 5, 60000);
   
-  const handleSubmit = async () => {
+  const handleSubmit = async (data) => {
     if (!checkLimit()) {
-      toast.error('Too many comments. Please wait.');
+      toast.error('Too many requests. Please wait a minute.');
       return;
     }
     
-    // Submit comment
-    await submitComment();
+    await submitComment(data);
     resetLimit();
+    toast.success('Comment posted!');
   };
+  
+  return <form onSubmit={handleSubmit}>...</form>;
 }
 ```
 
@@ -232,230 +338,366 @@ function CommentForm() {
 
 ### Lovable Cloud Overview
 
-Lovable Cloud provides a managed Supabase backend with:
+Lovable Cloud provides a fully managed Supabase backend with:
 
-1. **PostgreSQL Database** with Row Level Security
-2. **Authentication** (email, OAuth, magic links)
-3. **File Storage** with access policies
-4. **Edge Functions** (Deno runtime)
-5. **Real-time Subscriptions**
+1. **PostgreSQL Database** with Row Level Security (RLS)
+2. **Authentication** (email/password, OAuth, magic links)
+3. **File Storage** with secure access policies
+4. **Edge Functions** (Deno serverless runtime)
+5. **Real-time Subscriptions** for live data updates
 
-### Database Connection
+### Supabase Client
 
-The Supabase client is pre-configured and available globally:
+The client is pre-configured and globally available:
 
 ```typescript
 import { supabase } from '@/integrations/supabase/client';
 
-// ✅ Always use this client, never create your own
+// ✅ Always use this instance
+// ❌ Never create your own client
 ```
 
 ### Edge Functions
 
-Edge Functions run on Deno and provide server-side logic:
+Edge Functions provide serverless backend logic.
 
 ```
 supabase/functions/
-├── ai-classify-waste/      # AI waste classification
-├── send-notification/      # Push notifications
-├── calculate-impact/       # Environmental impact calculations
-└── generate-certificate/   # Achievement certificates
+├── mapbox-token/          # Secure Mapbox token provider
+│   └── index.ts
+└── classify-waste/        # AI waste classification
+    └── index.ts
 ```
 
-#### Creating an Edge Function
+#### mapbox-token Function
+Securely provides Mapbox access tokens to the frontend.
 
 ```typescript
-// supabase/functions/calculate-impact/index.ts
+// supabase/functions/mapbox-token/index.ts
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
-  const { wasteCollectedKg } = await req.json();
-  
-  // Calculate environmental impact
-  const carbonOffset = wasteCollectedKg * 0.5; // kg CO2
-  const oceansaved = wasteCollectedKg * 10; // liters
-  
-  return new Response(
-    JSON.stringify({ carbonOffset, oceanSaved }),
-    { headers: { "Content-Type": "application/json" } }
-  );
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const MAPBOX_ACCESS_TOKEN = Deno.env.get('MAPBOX_ACCESS_TOKEN');
+
+    if (!MAPBOX_ACCESS_TOKEN) {
+      throw new Error('MAPBOX_ACCESS_TOKEN not configured');
+    }
+
+    return new Response(
+      JSON.stringify({ token: MAPBOX_ACCESS_TOKEN }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    );
+  }
 });
 ```
 
-#### Calling an Edge Function
+**Usage:**
+```typescript
+const { data, error } = await supabase.functions.invoke('mapbox-token');
+if (data?.token) {
+  mapboxgl.accessToken = data.token;
+}
+```
+
+#### classify-waste Function
+AI-powered waste classification using Lovable AI.
 
 ```typescript
-const { data, error } = await supabase.functions.invoke('calculate-impact', {
-  body: { wasteCollectedKg: 15 }
-});
-
-if (error) console.error(error);
-else console.log(data); // { carbonOffset: 7.5, oceanSaved: 150 }
+// Frontend usage
+const classifyWaste = async (imageBase64: string) => {
+  const { data, error } = await supabase.functions.invoke('classify-waste', {
+    body: { imageBase64 }
+  });
+  
+  return data; // { wasteType, confidence, recyclable, ... }
+};
 ```
 
 ---
 
 ## Database Schema
 
-### Tables Overview
+### Table Relationships
+
+```
+┌──────────────┐       ┌──────────────────┐       ┌──────────────┐
+│   auth.users │◄──────│    profiles      │──────►│  user_stats  │
+└──────────────┘       └──────────────────┘       └──────────────┘
+                              │
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│ achievements │     │    badges    │     │   cleanups   │
+└──────────────┘     └──────────────┘     └──────────────┘
+                                                  │
+                                                  ▼
+                                          ┌──────────────┐
+                                          │    events    │
+                                          └──────────────┘
+                                                  │
+                                                  ▼
+                                     ┌───────────────────────┐
+                                     │ event_participants    │
+                                     └───────────────────────┘
+```
+
+### Core Tables
 
 #### profiles
-Stores user profile information.
+User profile information.
 
 ```sql
 CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  full_name TEXT,
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
   avatar_url TEXT,
   bio TEXT,
   location TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- RLS Policies
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public profiles are viewable by everyone"
+  ON profiles FOR SELECT USING (true);
+
+CREATE POLICY "Users can update their own profile"
+  ON profiles FOR UPDATE 
+  USING (auth.uid() = id);
 ```
 
-**RLS Policies:**
-- ✅ Everyone can view profiles
-- ✅ Users can update their own profile
-
 #### user_stats
-Tracks individual user statistics.
+Tracks user statistics and progress.
 
 ```sql
 CREATE TABLE user_stats (
-  user_id UUID PRIMARY KEY REFERENCES profiles(id),
-  total_cleanups INTEGER DEFAULT 0,
-  waste_collected_kg NUMERIC DEFAULT 0,
-  coastline_cleaned_m NUMERIC DEFAULT 0,
-  current_streak INTEGER DEFAULT 0,
-  longest_streak INTEGER DEFAULT 0,
-  total_points INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  level INTEGER NOT NULL DEFAULT 1,
+  points INTEGER NOT NULL DEFAULT 0,
+  next_level_points INTEGER NOT NULL DEFAULT 500,
+  environmental_score INTEGER NOT NULL DEFAULT 0,
+  cleanups_count INTEGER NOT NULL DEFAULT 0,
+  waste_collected NUMERIC NOT NULL DEFAULT 0,
+  volunteers_helped INTEGER NOT NULL DEFAULT 0,
+  quizzes_taken INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- RLS Policies
+ALTER TABLE user_stats ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "User stats are viewable by everyone"
+  ON user_stats FOR SELECT USING (true);
+
+CREATE POLICY "Users can update their own stats"
+  ON user_stats FOR UPDATE 
+  USING (auth.uid() = user_id);
 ```
 
-**RLS Policies:**
-- ✅ Users can view their own stats
-- ✅ Everyone can view leaderboard (top stats)
-
 #### events
-Stores cleanup event information.
+Cleanup event information.
 
 ```sql
 CREATE TABLE events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  description TEXT,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  date DATE NOT NULL,
+  time TEXT NOT NULL,
   location TEXT NOT NULL,
-  latitude NUMERIC,
-  longitude NUMERIC,
-  start_time TIMESTAMPTZ NOT NULL,
-  end_time TIMESTAMPTZ NOT NULL,
-  organizer_id UUID REFERENCES profiles(id),
-  max_participants INTEGER,
-  status TEXT DEFAULT 'upcoming',
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  category TEXT NOT NULL,
+  difficulty TEXT NOT NULL,
+  points_reward INTEGER NOT NULL DEFAULT 0,
+  max_volunteers INTEGER NOT NULL,
+  current_volunteers INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'upcoming',
+  waste_target TEXT[] NOT NULL DEFAULT '{}',
+  image TEXT,
+  created_by UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Enable real-time updates
+ALTER TABLE events REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE events;
+
+-- RLS Policies
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Events are viewable by authenticated users"
+  ON events FOR SELECT
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can create events"
+  ON events FOR INSERT
+  WITH CHECK (auth.uid() = created_by);
+
+CREATE POLICY "Creators can update their events"
+  ON events FOR UPDATE
+  USING (auth.uid() = created_by);
 ```
 
-**Status Values:** `upcoming`, `ongoing`, `completed`, `cancelled`
-
-**RLS Policies:**
-- ✅ Everyone can view events
-- ✅ Authenticated users can create events
-- ✅ Organizers can update/delete their events
-
-#### cleanups
-Records individual cleanup activities.
+#### event_participants
+Tracks event registration.
 
 ```sql
-CREATE TABLE cleanups (
+CREATE TABLE event_participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id) NOT NULL,
-  event_id UUID REFERENCES events(id),
-  waste_collected_kg NUMERIC NOT NULL,
-  location TEXT,
-  photos TEXT[],
-  date TIMESTAMPTZ DEFAULT now(),
-  created_at TIMESTAMPTZ DEFAULT now()
+  event_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  checked_in BOOLEAN NOT NULL DEFAULT false,
+  checked_in_at TIMESTAMPTZ,
+  UNIQUE(event_id, user_id)
 );
+
+-- RLS Policies
+ALTER TABLE event_participants ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Event participants are viewable by authenticated users"
+  ON event_participants FOR SELECT
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can join events"
+  ON event_participants FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 ```
 
-**RLS Policies:**
-- ✅ Users can create their own cleanups
-- ✅ Users can view their own cleanups
-- ✅ Everyone can view public cleanup stats
+#### achievements
+User achievement tracking.
+
+```sql
+CREATE TABLE achievements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  earned BOOLEAN NOT NULL DEFAULT false,
+  progress NUMERIC,
+  earned_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Achievements are viewable by everyone"
+  ON achievements FOR SELECT USING (true);
+
+CREATE POLICY "Users can update their own achievements"
+  ON achievements FOR UPDATE
+  USING (auth.uid() = user_id);
+```
 
 #### badges
-Defines available achievement badges.
+Badge assignments.
 
 ```sql
 CREATE TABLE badges (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
   name TEXT NOT NULL,
-  description TEXT,
-  icon TEXT,
-  criteria TEXT,
-  rarity TEXT DEFAULT 'common',
-  created_at TIMESTAMPTZ DEFAULT now()
+  earned_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- RLS Policies
+ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Badges are viewable by everyone"
+  ON badges FOR SELECT USING (true);
 ```
 
-**Rarity Levels:** `common`, `rare`, `epic`, `legendary`
-
-#### achievements
-Tracks user-earned badges.
+#### social_posts
+Community social feed.
 
 ```sql
-CREATE TABLE achievements (
-  user_id UUID REFERENCES profiles(id),
-  badge_id UUID REFERENCES badges(id),
-  earned_at TIMESTAMPTZ DEFAULT now(),
-  PRIMARY KEY (user_id, badge_id)
-);
-```
-
-**RLS Policies:**
-- ✅ Users can view their own achievements
-- ✅ Everyone can view public achievements
-
-#### teams
-Stores team information.
-
-```sql
-CREATE TABLE teams (
+CREATE TABLE social_posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  description TEXT,
-  leader_id UUID REFERENCES profiles(id),
-  avatar_url TEXT,
-  member_count INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  user_id UUID NOT NULL,
+  content TEXT NOT NULL,
+  type TEXT NOT NULL,
+  image_url TEXT,
+  location TEXT,
+  likes INTEGER NOT NULL DEFAULT 0,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- RLS Policies
+ALTER TABLE social_posts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Social posts are viewable by authenticated users"
+  ON social_posts FOR SELECT
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can create posts"
+  ON social_posts FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 ```
 
-#### team_members
-Tracks team membership.
+#### waste_classifications
+AI waste classification results.
 
 ```sql
-CREATE TABLE team_members (
-  team_id UUID REFERENCES teams(id),
-  user_id UUID REFERENCES profiles(id),
-  role TEXT DEFAULT 'member',
-  joined_at TIMESTAMPTZ DEFAULT now(),
-  PRIMARY KEY (team_id, user_id)
+CREATE TABLE waste_classifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  waste_type TEXT NOT NULL,
+  sub_category TEXT NOT NULL,
+  confidence NUMERIC NOT NULL,
+  recyclable BOOLEAN NOT NULL,
+  estimated_weight TEXT NOT NULL,
+  volume_estimation JSONB,
+  environmental_impact TEXT NOT NULL,
+  disposal_recommendation TEXT NOT NULL,
+  image_url TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-```
 
-**Roles:** `leader`, `member`
+-- RLS Policies
+ALTER TABLE waste_classifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own classifications"
+  ON waste_classifications FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create classifications"
+  ON waste_classifications FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+```
 
 ### Database Functions
 
 #### update_updated_at_column()
-Automatically updates the `updated_at` timestamp.
+Automatically updates `updated_at` timestamps.
 
 ```sql
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -466,10 +708,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Attach to tables
+-- Apply to tables
 CREATE TRIGGER update_profiles_updated_at
-BEFORE UPDATE ON profiles
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_stats_updated_at
+  BEFORE UPDATE ON user_stats
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_events_updated_at
+  BEFORE UPDATE ON events
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
 #### handle_new_user()
@@ -477,457 +727,509 @@ Creates profile and stats for new users.
 
 ```sql
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public
+AS $$
 BEGIN
+  -- Create profile
   INSERT INTO public.profiles (id, full_name)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name');
+  VALUES (
+    NEW.id, 
+    COALESCE(NEW.raw_user_meta_data->>'full_name', 'New User')
+  );
   
+  -- Create stats
   INSERT INTO public.user_stats (user_id)
   VALUES (NEW.id);
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
--- Trigger on auth.users
+-- Trigger on user creation
 CREATE TRIGGER on_auth_user_created
-AFTER INSERT ON auth.users
-FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 ```
 
 ---
 
 ## Authentication System
 
-### Authentication Flow
+### Supabase Auth Integration
 
-```
-┌─────────────┐
-│  User Signs │
-│  Up/Login   │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────┐
-│ Supabase Auth   │
-│ Creates Session │
-└──────┬──────────┘
-       │
-       ▼
-┌──────────────────┐
-│ handle_new_user()│
-│ Trigger Fires    │
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│ Profile Created  │
-│ Stats Created    │
-└──────────────────┘
-```
-
-### Sign Up
+#### Sign Up
 
 ```typescript
-const { data, error } = await supabase.auth.signUp({
-  email: 'user@example.com',
-  password: 'securePassword123',
-  options: {
-    data: {
-      full_name: 'John Doe'
-    }
-  }
-});
+const signUp = async (email: string, password: string, fullName: string) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+    },
+  });
+  
+  if (error) throw error;
+  return data;
+};
 ```
 
-### Sign In
+#### Sign In
 
 ```typescript
-const { data, error } = await supabase.auth.signInWithPassword({
-  email: 'user@example.com',
-  password: 'securePassword123'
-});
+const signIn = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  
+  if (error) throw error;
+  return data;
+};
 ```
 
-### Sign Out
+#### Sign Out
 
 ```typescript
-const { error } = await supabase.auth.signOut();
+const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+};
 ```
 
-### Check Auth State
-
-```typescript
-const { data: { user } } = await supabase.auth.getUser();
-
-if (user) {
-  console.log('Logged in:', user.email);
-} else {
-  console.log('Not logged in');
-}
-```
-
-### Protected Routes
+#### Protected Routes
 
 ```typescript
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
-function ProtectedRoute({ children }) {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/auth" replace />;
   
-  return children;
-}
+  return <>{children}</>;
+};
 
 // Usage in App.tsx
-<Route path="/dashboard" element={
-  <ProtectedRoute>
-    <Dashboard />
-  </ProtectedRoute>
-} />
+<Route
+  path="/dashboard"
+  element={
+    <ProtectedRoute>
+      <Dashboard />
+    </ProtectedRoute>
+  }
+/>
+```
+
+---
+
+## Real-time Features
+
+### Subscribing to Database Changes
+
+The InteractiveMap component demonstrates real-time subscriptions:
+
+```typescript
+useEffect(() => {
+  // Subscribe to events table changes
+  const channel = supabase
+    .channel('events-realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'events',
+        filter: 'status=eq.upcoming'
+      },
+      (payload) => {
+        console.log('Event updated:', payload);
+        
+        if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+          // Update local state with new data
+          handleEventUpdate(payload.new);
+        } else if (payload.eventType === 'DELETE') {
+          // Remove from local state
+          handleEventDelete(payload.old.id);
+        }
+      }
+    )
+    .subscribe();
+
+  // Cleanup
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
+```
+
+### Real-time Map Updates
+
+```typescript
+const InteractiveMap = () => {
+  const [events, setEvents] = useState<EventLocation[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('events-realtime')
+      .on('postgres_changes', { ... }, (payload) => {
+        setLastUpdate(new Date());
+        
+        if (payload.eventType === 'UPDATE') {
+          setEvents(prev => 
+            prev.map(e => 
+              e.id === payload.new.id ? payload.new : e
+            )
+          );
+        }
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  return (
+    <div>
+      {lastUpdate && (
+        <Badge>Updated {lastUpdate.toLocaleTimeString()}</Badge>
+      )}
+      <Map events={events} />
+    </div>
+  );
+};
+```
+
+---
+
+## AI Integration
+
+### Lovable AI Setup
+
+Lovable AI provides seamless AI integration without requiring API keys.
+
+#### Waste Classification
+
+```typescript
+const classifyWaste = async (imageFile: File) => {
+  // Convert image to base64
+  const reader = new FileReader();
+  const imageBase64 = await new Promise<string>((resolve) => {
+    reader.onload = () => resolve(reader.result as string);
+    reader.readAsDataURL(imageFile);
+  });
+
+  // Call edge function
+  const { data, error } = await supabase.functions.invoke('classify-waste', {
+    body: { imageBase64 }
+  });
+
+  if (error) throw error;
+  
+  return data as {
+    wasteType: string;
+    confidence: number;
+    subCategory: string;
+    recyclable: boolean;
+    estimatedWeight: string;
+    volumeEstimation: {
+      estimatedVolume: string;
+      dimensions: string;
+      sizeCategory: string;
+    };
+    environmentalImpact: string;
+    disposalRecommendation: string;
+  };
+};
+```
+
+#### Usage in Component
+
+```typescript
+const WasteClassifier = () => {
+  const [image, setImage] = useState<File | null>(null);
+  const [result, setResult] = useState<ClassificationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleClassify = async () => {
+    if (!image) return;
+    
+    setLoading(true);
+    try {
+      const classification = await classifyWaste(image);
+      setResult(classification);
+      
+      // Save to database
+      await supabase.from('waste_classifications').insert({
+        user_id: user.id,
+        ...classification
+      });
+      
+      toast.success('Waste classified successfully!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Classification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setImage(e.target.files?.[0] || null)}
+      />
+      <Button onClick={handleClassify} disabled={!image || loading}>
+        {loading ? 'Classifying...' : 'Classify Waste'}
+      </Button>
+      {result && <ClassificationDisplay result={result} />}
+    </div>
+  );
+};
 ```
 
 ---
 
 ## Component Library
 
-### UI Components (Radix UI)
+### Base UI Components (shadcn/ui)
 
-All base components are in `src/components/ui/` and are built on Radix UI primitives.
+All base components are built on Radix UI primitives:
 
-#### Button
+- `<Button>` - Button with variants
+- `<Card>` - Container component
+- `<Dialog>` - Modal dialogs
+- `<Input>` - Form input
+- `<Select>` - Dropdown select
+- `<Tabs>` - Tab navigation
+- `<Badge>` - Status badges
+- `<Avatar>` - User avatars
+- `<Progress>` - Progress bars
+- `<Accordion>` - Collapsible content
 
-```typescript
-import { Button } from '@/components/ui/button';
-
-<Button variant="default">Click Me</Button>
-<Button variant="destructive">Delete</Button>
-<Button variant="outline">Cancel</Button>
-<Button variant="ghost">Ghost</Button>
-<Button size="sm">Small</Button>
-<Button size="lg">Large</Button>
-```
-
-**Variants:** `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`  
-**Sizes:** `default`, `sm`, `lg`, `icon`
-
-#### Card
-
-```typescript
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-
-<Card>
-  <CardHeader>
-    <CardTitle>Card Title</CardTitle>
-    <CardDescription>Card description</CardDescription>
-  </CardHeader>
-  <CardContent>
-    <p>Card content goes here</p>
-  </CardContent>
-  <CardFooter>
-    <Button>Action</Button>
-  </CardFooter>
-</Card>
-```
-
-#### Dialog
-
-```typescript
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-
-<Dialog>
-  <DialogTrigger asChild>
-    <Button>Open Dialog</Button>
-  </DialogTrigger>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Dialog Title</DialogTitle>
-      <DialogDescription>Dialog description</DialogDescription>
-    </DialogHeader>
-    <div>Dialog content</div>
-  </DialogContent>
-</Dialog>
-```
-
-#### Form
-
-```typescript
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8)
-});
-
-function LoginForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { email: '', password: '' }
-  });
-  
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-  };
-  
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {/* More fields... */}
-        <Button type="submit">Submit</Button>
-      </form>
-    </Form>
-  );
-}
-```
-
-### Custom Components
+### Feature Components
 
 #### EventCard
 
-Displays event information in a card format.
-
 ```typescript
-import { EventCard } from '@/components/EventCard';
+interface EventCardProps {
+  event: {
+    id: string;
+    name: string;
+    description: string;
+    date: string;
+    time: string;
+    location: string;
+    category: string;
+    difficulty: string;
+    points_reward: number;
+    current_volunteers: number;
+    max_volunteers: number;
+    image?: string;
+  };
+  onJoin?: (eventId: string) => void;
+  isJoined?: boolean;
+}
 
-<EventCard
-  event={{
-    id: '123',
-    title: 'Beach Cleanup',
-    description: 'Join us for a beach cleanup',
-    location: 'Mumbai Beach',
-    startTime: new Date(),
-    maxParticipants: 50
-  }}
-  onJoin={() => console.log('Joined!')}
-/>
+const EventCard: React.FC<EventCardProps> = ({ event, onJoin, isJoined }) => {
+  return (
+    <Card>
+      <CardHeader>
+        <img src={event.image} alt={event.name} />
+        <CardTitle>{event.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>{event.description}</p>
+        <div className="flex gap-2">
+          <Badge>{event.category}</Badge>
+          <Badge>{event.difficulty}</Badge>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button onClick={() => onJoin?.(event.id)} disabled={isJoined}>
+          {isJoined ? 'Joined' : 'Join Event'}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
 ```
-
-#### Leaderboard
-
-Shows top volunteers rankings.
-
-```typescript
-import { Leaderboard } from '@/components/Leaderboard';
-
-<Leaderboard limit={10} period="weekly" />
-```
-
-**Props:**
-- `limit`: Number of entries to show
-- `period`: `'weekly'` | `'monthly'` | `'all-time'`
 
 #### InteractiveMap
 
-Displays events on an interactive map.
+The map component with real-time updates:
 
 ```typescript
-import { InteractiveMap } from '@/components/InteractiveMap';
+const InteractiveMap = () => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [events, setEvents] = useState<EventLocation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-<InteractiveMap
-  events={eventsArray}
-  onEventClick={(eventId) => navigate(`/events/${eventId}`)}
-  center={[19.0760, 72.8777]} // [lat, lng]
-  zoom={10}
-/>
+  // Load events
+  useEffect(() => {
+    loadEvents();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('events-realtime')
+      .on('postgres_changes', { ... }, handleEventUpdate)
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || !events.length) return;
+
+    const initMap = async () => {
+      // Fetch Mapbox token
+      const { data } = await supabase.functions.invoke('mapbox-token');
+      mapboxgl.accessToken = data.token;
+
+      // Create map
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current!,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [78.9629, 20.5937],
+        zoom: 4.5,
+      });
+
+      // Add markers
+      events.forEach(event => {
+        new mapboxgl.Marker()
+          .setLngLat(event.coordinates)
+          .setPopup(new mapboxgl.Popup().setHTML(eventPopupHTML(event)))
+          .addTo(map.current!);
+      });
+
+      setLoading(false);
+    };
+
+    initMap();
+  }, [events]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cleanup Locations</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading && <LoadingSpinner />}
+        <div ref={mapContainer} className="h-96" />
+      </CardContent>
+    </Card>
+  );
+};
 ```
 
 ---
 
 ## API Reference
 
-### Profiles
+### Supabase Client Methods
 
-#### Get Profile
-
-```typescript
-const { data: profile, error } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('id', userId)
-  .single();
-```
-
-#### Update Profile
+#### Database Queries
 
 ```typescript
+// Select
 const { data, error } = await supabase
-  .from('profiles')
-  .update({
-    full_name: 'Jane Doe',
-    bio: 'Eco warrior',
-    location: 'Mumbai'
-  })
-  .eq('id', userId);
-```
-
-#### Upload Avatar
-
-```typescript
-const file = event.target.files[0];
-const fileExt = file.name.split('.').pop();
-const fileName = `${userId}.${fileExt}`;
-const filePath = `avatars/${fileName}`;
-
-const { error: uploadError } = await supabase.storage
-  .from('avatars')
-  .upload(filePath, file, { upsert: true });
-
-if (!uploadError) {
-  const { data: { publicUrl } } = supabase.storage
-    .from('avatars')
-    .getPublicUrl(filePath);
-  
-  // Update profile with avatar URL
-  await supabase
-    .from('profiles')
-    .update({ avatar_url: publicUrl })
-    .eq('id', userId);
-}
-```
-
-### Events
-
-#### Get All Events
-
-```typescript
-const { data: events, error } = await supabase
   .from('events')
-  .select('*, organizer:profiles(*)')
+  .select('*')
   .eq('status', 'upcoming')
-  .gte('start_time', new Date().toISOString())
-  .order('start_time', { ascending: true });
-```
+  .order('date', { ascending: true })
+  .limit(10);
 
-#### Create Event
-
-```typescript
+// Insert
 const { data, error } = await supabase
   .from('events')
   .insert({
-    title: 'Beach Cleanup',
-    description: 'Join us!',
-    location: 'Mumbai Beach',
-    latitude: 19.0760,
-    longitude: 72.8777,
-    start_time: new Date('2024-06-15T09:00:00'),
-    end_time: new Date('2024-06-15T12:00:00'),
-    organizer_id: userId,
-    max_participants: 50
-  })
-  .select()
-  .single();
-```
-
-#### Update Event
-
-```typescript
-const { data, error } = await supabase
-  .from('events')
-  .update({ status: 'completed' })
-  .eq('id', eventId)
-  .eq('organizer_id', userId); // Only organizer can update
-```
-
-### User Stats
-
-#### Get User Stats
-
-```typescript
-const { data: stats, error } = await supabase
-  .from('user_stats')
-  .select('*')
-  .eq('user_id', userId)
-  .single();
-```
-
-#### Update Stats (after cleanup)
-
-```typescript
-const { data, error } = await supabase.rpc('increment_user_stats', {
-  p_user_id: userId,
-  p_cleanups: 1,
-  p_waste_kg: 5.5,
-  p_coastline_m: 100
-});
-```
-
-### Badges & Achievements
-
-#### Get All Badges
-
-```typescript
-const { data: badges, error } = await supabase
-  .from('badges')
-  .select('*')
-  .order('rarity', { ascending: false });
-```
-
-#### Get User Achievements
-
-```typescript
-const { data: achievements, error } = await supabase
-  .from('achievements')
-  .select('*, badge:badges(*)')
-  .eq('user_id', userId)
-  .order('earned_at', { ascending: false });
-```
-
-#### Award Badge
-
-```typescript
-const { data, error } = await supabase
-  .from('achievements')
-  .insert({
-    user_id: userId,
-    badge_id: badgeId
+    name: 'Beach Cleanup',
+    description: 'Clean up Marina Beach',
+    date: '2025-12-01',
+    time: '08:00 AM',
+    location: 'Chennai',
+    created_by: user.id
   });
+
+// Update
+const { data, error } = await supabase
+  .from('events')
+  .update({ current_volunteers: 10 })
+  .eq('id', eventId);
+
+// Delete
+const { data, error } = await supabase
+  .from('events')
+  .delete()
+  .eq('id', eventId);
 ```
 
-### Real-time Subscriptions
-
-#### Subscribe to Events
+#### Authentication
 
 ```typescript
-const channel = supabase
-  .channel('events-changes')
-  .on(
-    'postgres_changes',
-    {
-      event: '*',
-      schema: 'public',
-      table: 'events'
-    },
-    (payload) => {
-      console.log('Event changed:', payload);
-      // Update UI
-    }
-  )
-  .subscribe();
+// Sign up
+const { data, error } = await supabase.auth.signUp({
+  email: 'user@example.com',
+  password: 'password123',
+  options: {
+    data: { full_name: 'John Doe' }
+  }
+});
 
-// Cleanup
-return () => {
-  supabase.removeChannel(channel);
-};
+// Sign in
+const { data, error } = await supabase.auth.signInWithPassword({
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// Sign out
+const { error } = await supabase.auth.signOut();
+
+// Get session
+const { data: { session } } = await supabase.auth.getSession();
+
+// Get user
+const { data: { user } } = await supabase.auth.getUser();
+```
+
+#### Storage
+
+```typescript
+// Upload file
+const { data, error } = await supabase.storage
+  .from('avatars')
+  .upload(`${user.id}/avatar.jpg`, file);
+
+// Download file
+const { data, error } = await supabase.storage
+  .from('avatars')
+  .download(`${user.id}/avatar.jpg`);
+
+// Get public URL
+const { data } = supabase.storage
+  .from('avatars')
+  .getPublicUrl(`${user.id}/avatar.jpg`);
+```
+
+#### Edge Functions
+
+```typescript
+// Invoke function
+const { data, error } = await supabase.functions.invoke('function-name', {
+  body: { key: 'value' },
+  headers: { 'Content-Type': 'application/json' }
+});
 ```
 
 ---
@@ -938,34 +1240,13 @@ return () => {
 
 Used for server state management.
 
-#### Query Setup
-
 ```typescript
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false
-    }
-  }
-});
-
-// In App.tsx
-<QueryClientProvider client={queryClient}>
-  <App />
-</QueryClientProvider>
-```
-
-#### Using Queries
-
-```typescript
-import { useQuery } from '@tanstack/react-query';
-
-function EventsList() {
-  const { data: events, isLoading, error } = useQuery({
-    queryKey: ['events', 'upcoming'],
+// Fetch data
+const useEvents = () => {
+  return useQuery({
+    queryKey: ['events'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('events')
@@ -974,314 +1255,281 @@ function EventsList() {
       
       if (error) throw error;
       return data;
-    }
+    },
   });
-  
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  
-  return (
-    <div>
-      {events.map(event => (
-        <EventCard key={event.id} event={event} />
-      ))}
-    </div>
-  );
-}
-```
+};
 
-#### Using Mutations
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-
-function CreateEventForm() {
+// Mutate data
+const useJoinEvent = () => {
   const queryClient = useQueryClient();
   
-  const createEvent = useMutation({
-    mutationFn: async (eventData) => {
+  return useMutation({
+    mutationFn: async (eventId: string) => {
       const { data, error } = await supabase
-        .from('events')
-        .insert(eventData)
-        .select()
-        .single();
+        .from('event_participants')
+        .insert({ event_id: eventId, user_id: user.id });
       
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      toast.success('Event created!');
     },
-    onError: (error) => {
-      toast.error(error.message);
-    }
   });
-  
-  const handleSubmit = (data) => {
-    createEvent.mutate(data);
-  };
-}
-```
+};
 
-### Local State
+// Usage in component
+const EventsList = () => {
+  const { data: events, isLoading } = useEvents();
+  const joinEvent = useJoinEvent();
 
-Use React hooks for component-level state:
+  if (isLoading) return <LoadingSpinner />;
 
-```typescript
-import { useState, useEffect } from 'react';
-
-function Counter() {
-  const [count, setCount] = useState(0);
-  
-  useEffect(() => {
-    document.title = `Count: ${count}`;
-  }, [count]);
-  
   return (
-    <button onClick={() => setCount(count + 1)}>
-      Count: {count}
-    </button>
+    <div>
+      {events?.map(event => (
+        <EventCard
+          key={event.id}
+          event={event}
+          onJoin={() => joinEvent.mutate(event.id)}
+        />
+      ))}
+    </div>
   );
-}
-```
-
----
-
-## Routing & Navigation
-
-### Route Configuration
-
-```typescript
-// App.tsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-<BrowserRouter>
-  <Routes>
-    <Route path="/" element={<Layout><Home /></Layout>} />
-    <Route path="/events" element={<Layout><Events /></Layout>} />
-    <Route path="/events/:id" element={<Layout><EventDetail /></Layout>} />
-    <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-    <Route path="/profile" element={<Layout><Profile /></Layout>} />
-    <Route path="/auth" element={<Auth />} />
-    <Route path="*" element={<Layout><NotFound /></Layout>} />
-  </Routes>
-</BrowserRouter>
-```
-
-### Navigation
-
-```typescript
-import { useNavigate, Link } from 'react-router-dom';
-
-function MyComponent() {
-  const navigate = useNavigate();
-  
-  // Programmatic navigation
-  const handleClick = () => {
-    navigate('/events');
-  };
-  
-  return (
-    <>
-      <button onClick={handleClick}>Go to Events</button>
-      
-      {/* Declarative navigation */}
-      <Link to="/dashboard">Dashboard</Link>
-    </>
-  );
-}
-```
-
-### Route Parameters
-
-```typescript
-import { useParams } from 'react-router-dom';
-
-function EventDetail() {
-  const { id } = useParams<{ id: string }>();
-  
-  const { data: event } = useQuery({
-    queryKey: ['event', id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', id)
-        .single();
-      return data;
-    }
-  });
-}
+};
 ```
 
 ---
 
 ## Styling & Design System
 
-### Design Tokens
+### Tailwind Configuration
 
-Defined in `src/index.css`:
+```typescript
+// tailwind.config.ts
+export default {
+  darkMode: ["class"],
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        // ... more colors
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+};
+```
+
+### CSS Variables (Design Tokens)
 
 ```css
+/* index.css */
 :root {
   /* Brand Colors */
-  --brand-primary: 220 95% 32%;      /* #014F86 - Ocean Blue */
-  --brand-secondary: 142 28% 82%;    /* #C5E4CF - Mint Green */
-  --brand-accent: 46 89% 92%;        /* #F6EFD2 - Sand */
-  --brand-danger: 4 69% 67%;         /* #FF6F61 - Coral */
-  
-  /* Backgrounds */
-  --background: 0 0% 100%;
-  --foreground: 220 95% 32%;
+  --primary: 200 95% 27%;  /* Ocean Blue */
+  --secondary: 163 94% 24%; /* Coastal Teal */
+  --accent: 34 100% 50%;    /* Sunrise Orange */
   
   /* Semantic Colors */
-  --primary: 220 95% 32%;
-  --secondary: 142 28% 82%;
-  --accent: 46 89% 92%;
-  --destructive: 4 69% 67%;
-  
-  /* UI Elements */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 220 13% 13%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 220 95% 32%;
+  --card-foreground: 222 47% 11%;
   
-  /* Typography */
+  /* Status Colors */
+  --success: 142 76% 36%;
+  --warning: 38 92% 50%;
+  --error: 0 72% 51%;
+  
+  /* Spacing */
   --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  /* ... dark mode overrides */
 }
 ```
 
-### Using Design Tokens
+### Component Styling
 
 ```typescript
-// ✅ Use semantic tokens
-<div className="bg-brand-primary text-white">
-<div className="border-border rounded-radius">
+// Using design tokens
+<div className="bg-background text-foreground">
+  <h1 className="text-primary">Eco-Sanjivani</h1>
+  <p className="text-muted-foreground">Marine conservation</p>
+</div>
 
-// ❌ Avoid hardcoded colors
-<div className="bg-[#014F86]">
-<div style={{ backgroundColor: '#014F86' }}>
+// Responsive design
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {/* Cards */}
+</div>
+
+// Custom utilities
+<Button className="gradient-primary">Join Event</Button>
 ```
 
-### Tailwind Utilities
+---
+
+## Security Guidelines
+
+### Input Validation
+
+Always validate user input with Zod schemas:
 
 ```typescript
-// Spacing
-<div className="p-4 m-2 space-y-4">
+import { z } from 'zod';
 
-// Layout
-<div className="flex flex-col items-center justify-between">
-<div className="grid grid-cols-3 gap-4">
+const eventSchema = z.object({
+  name: z.string()
+    .min(3, 'Name must be at least 3 characters')
+    .max(100, 'Name must not exceed 100 characters')
+    .refine(value => !/<[^>]*>/.test(value), 'HTML tags not allowed'),
+  
+  description: z.string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(500, 'Description must not exceed 500 characters'),
+  
+  date: z.string()
+    .refine(value => new Date(value) > new Date(), 'Date must be in the future'),
+  
+  location: z.string().min(3, 'Location is required'),
+});
 
-// Responsive
-<div className="w-full md:w-1/2 lg:w-1/3">
-
-// States
-<button className="hover:bg-primary/90 active:scale-95">
-
-// Dark Mode
-<div className="bg-white dark:bg-gray-900">
+// Usage in form
+const form = useForm({
+  resolver: zodResolver(eventSchema),
+});
 ```
 
-### Component Variants
+### Row Level Security (RLS)
 
-Using `class-variance-authority`:
+Always enable RLS on tables:
+
+```sql
+-- Enable RLS
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Users can view events"
+  ON events FOR SELECT
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can create events"
+  ON events FOR INSERT
+  WITH CHECK (auth.uid() = created_by);
+
+CREATE POLICY "Users can update their events"
+  ON events FOR UPDATE
+  USING (auth.uid() = created_by);
+```
+
+### Rate Limiting
 
 ```typescript
-import { cva, type VariantProps } from 'class-variance-authority';
+const { checkLimit, resetLimit } = useRateLimit('action-name', 5, 60000);
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-white hover:bg-primary/90",
-        destructive: "bg-destructive text-white hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-      }
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    }
+const handleAction = async () => {
+  if (!checkLimit()) {
+    toast.error('Too many requests. Please wait.');
+    return;
   }
-);
+  
+  // Perform action
+  await performAction();
+  resetLimit();
+};
 ```
+
+### Error Handling
+
+```typescript
+// Error boundary
+<SecurityErrorBoundary>
+  <App />
+</SecurityErrorBoundary>
+
+// Try-catch in async functions
+try {
+  const result = await riskyOperation();
+} catch (error) {
+  console.error('Operation failed:', error);
+  toast.error('An error occurred. Please try again.');
+}
+```
+
+---
+
+## Deployment Guide
+
+### Lovable Cloud Deployment
+
+1. **Automatic Deployment**: Changes are automatically deployed
+2. **Frontend Updates**: Click "Update" in publish dialog
+3. **Backend Changes**: Deploy immediately and automatically
+4. **Edge Functions**: Auto-deployed with code changes
+
+### Environment Variables
+
+Managed automatically by Lovable Cloud:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+VITE_SUPABASE_PROJECT_ID=your-project-id
+```
+
+### Database Migrations
+
+Migrations are applied automatically through Lovable interface.
+
+### Custom Domain
+
+1. Go to Project Settings > Domains
+2. Add your custom domain
+3. Configure DNS records
+4. Wait for SSL certificate provisioning
 
 ---
 
 ## Testing Strategy
 
-### Unit Testing
+### Manual Testing Checklist
 
-Using Jest and React Testing Library:
+- [ ] Authentication flow (sign up, sign in, sign out)
+- [ ] Event creation and management
+- [ ] Event registration and check-in
+- [ ] Real-time map updates
+- [ ] Waste classification
+- [ ] Dashboard statistics
+- [ ] Profile editing
+- [ ] Social features
+- [ ] Mobile responsiveness
+- [ ] Dark mode
 
-```typescript
-import { render, screen, fireEvent } from '@testing-library/react';
-import { Button } from '@/components/ui/button';
-
-describe('Button', () => {
-  it('renders button with text', () => {
-    render(<Button>Click Me</Button>);
-    expect(screen.getByText('Click Me')).toBeInTheDocument();
-  });
-  
-  it('calls onClick when clicked', () => {
-    const handleClick = jest.fn();
-    render(<Button onClick={handleClick}>Click Me</Button>);
-    
-    fireEvent.click(screen.getByText('Click Me'));
-    expect(handleClick).toHaveBeenCalledTimes(1);
-  });
-});
-```
-
-### Integration Testing
+### Testing Edge Functions
 
 ```typescript
-import { renderWithProviders } from './test-utils';
-import { EventsList } from '@/components/EventsList';
+// Test mapbox-token function
+const { data, error } = await supabase.functions.invoke('mapbox-token');
+console.log('Token:', data?.token);
 
-describe('EventsList', () => {
-  it('fetches and displays events', async () => {
-    renderWithProviders(<EventsList />);
-    
-    // Wait for data to load
-    expect(await screen.findByText('Beach Cleanup')).toBeInTheDocument();
-  });
+// Test classify-waste function
+const { data, error } = await supabase.functions.invoke('classify-waste', {
+  body: { imageBase64: testImage }
 });
-```
-
-### E2E Testing
-
-Using Playwright:
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test('user can create an event', async ({ page }) => {
-  await page.goto('/');
-  await page.click('text=Login');
-  await page.fill('[name="email"]', 'test@example.com');
-  await page.fill('[name="password"]', 'password123');
-  await page.click('button:has-text("Sign In")');
-  
-  await page.click('text=Create Event');
-  await page.fill('[name="title"]', 'Test Event');
-  await page.fill('[name="location"]', 'Mumbai');
-  await page.click('button:has-text("Create")');
-  
-  await expect(page.locator('text=Event created successfully')).toBeVisible();
-});
+console.log('Classification:', data);
 ```
 
 ---
@@ -1296,492 +1544,38 @@ import { lazy, Suspense } from 'react';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Events = lazy(() => import('./pages/Events'));
 
-function App() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/events" element={<Events />} />
-      </Routes>
-    </Suspense>
-  );
-}
-```
-
-### Memoization
-
-```typescript
-import { memo, useMemo, useCallback } from 'react';
-
-// Memoize expensive calculations
-const expensiveValue = useMemo(() => {
-  return computeExpensiveValue(data);
-}, [data]);
-
-// Memoize callbacks
-const handleClick = useCallback(() => {
-  doSomething(value);
-}, [value]);
-
-// Memoize components
-const MemoizedComponent = memo(({ data }) => {
-  return <div>{data}</div>;
-});
+<Suspense fallback={<PageLoader />}>
+  <Routes>
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/events" element={<Events />} />
+  </Routes>
+</Suspense>
 ```
 
 ### Image Optimization
 
 ```typescript
-// Use responsive images
+// Use proper image formats and sizes
 <img
-  src="/image.jpg"
-  srcSet="/image-320w.jpg 320w, /image-640w.jpg 640w, /image-1280w.jpg 1280w"
-  sizes="(max-width: 320px) 280px, (max-width: 640px) 600px, 1200px"
-  alt="Description"
+  src={event.image}
+  alt={event.name}
   loading="lazy"
+  className="w-full h-48 object-cover"
 />
 ```
 
-### Virtual Lists
-
-For long lists, use virtualization:
+### Database Query Optimization
 
 ```typescript
-import { useVirtualizer } from '@tanstack/react-virtual';
+// ❌ Bad: Select all columns
+const { data } = await supabase.from('events').select('*');
 
-function LongList({ items }) {
-  const parentRef = useRef<HTMLDivElement>(null);
-  
-  const virtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 50,
-  });
-  
-  return (
-    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
-      <div style={{ height: virtualizer.getTotalSize() }}>
-        {virtualizer.getVirtualItems().map((virtualItem) => (
-          <div key={virtualItem.index} style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            transform: `translateY(${virtualItem.start}px)`,
-          }}>
-            {items[virtualItem.index]}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-```
-
----
-
-## Security Guidelines
-
-### Input Validation
-
-Always validate user input:
-
-```typescript
-import { z } from 'zod';
-
-const eventSchema = z.object({
-  title: z.string().min(3).max(100),
-  description: z.string().max(1000),
-  location: z.string().min(3),
-  maxParticipants: z.number().int().positive().max(10000)
-});
-
-// Validate before submission
-try {
-  const validData = eventSchema.parse(formData);
-  // Submit valid data
-} catch (error) {
-  // Handle validation errors
-}
-```
-
-### XSS Prevention
-
-React automatically escapes content, but be careful with:
-
-```typescript
-// ❌ Dangerous - don't do this
-<div dangerouslySetInnerHTML={{ __html: userContent }} />
-
-// ✅ Safe - let React handle it
-<div>{userContent}</div>
-
-// ✅ Safe - sanitize if you must use HTML
-import DOMPurify from 'dompurify';
-<div dangerouslySetInnerHTML={{ 
-  __html: DOMPurify.sanitize(userContent) 
-}} />
-```
-
-### SQL Injection Prevention
-
-Supabase client handles this automatically:
-
-```typescript
-// ✅ Safe - parameterized query
+// ✅ Good: Select only needed columns
 const { data } = await supabase
   .from('events')
-  .select('*')
-  .eq('title', userInput);
-
-// ❌ Never do raw SQL with user input
-// (Not possible with Supabase client, but avoid in Edge Functions)
+  .select('id, name, date, location')
+  .limit(10);
 ```
-
-### Rate Limiting
-
-```typescript
-import { useRateLimit } from '@/hooks/useRateLimit';
-
-function ContactForm() {
-  const { checkLimit } = useRateLimit('contact', 3, 60000);
-  
-  const handleSubmit = async () => {
-    if (!checkLimit()) {
-      toast.error('Too many requests. Please wait.');
-      return;
-    }
-    
-    // Process form
-  };
-}
-```
-
----
-
-## Deployment Guide
-
-### Lovable Platform Deployment
-
-1. **Connect to GitHub** (optional)
-   - Click GitHub icon in Lovable editor
-   - Authorize Lovable GitHub App
-   - Create repository
-
-2. **Publish**
-   - Click "Publish" button
-   - Your app is live at `yourapp.lovable.app`
-
-3. **Custom Domain** (Pro plan)
-   - Go to Settings → Domains
-   - Add your custom domain
-   - Update DNS records as instructed
-
-### Self-Hosting (Advanced)
-
-If you want to host outside Lovable:
-
-1. **Build the project**
-   ```bash
-   npm run build
-   ```
-
-2. **Deploy static files**
-   - Upload `dist/` folder to your host
-   - Configure server to serve `index.html` for all routes
-
-3. **Set up backend**
-   - Create Supabase project at supabase.com
-   - Run migrations from `supabase/migrations/`
-   - Update environment variables
-
-4. **Configure environment**
-   ```env
-   VITE_SUPABASE_URL=your-project-url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
-   ```
-
----
-
-## AI/ML Integration Guide
-
-Eco-Sanjivani can leverage AI/ML to enhance functionality and user experience. Here's how:
-
-### 1. AI-Powered Waste Classification
-
-Use **Lovable AI** (with image analysis models) or **TensorFlow.js** for client-side classification.
-
-#### Option A: Lovable AI (Recommended)
-
-```typescript
-// Edge Function: supabase/functions/classify-waste/index.ts
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-serve(async (req) => {
-  const { imageBase64 } = await req.json();
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Analyze this image and classify the type of waste (plastic, metal, organic, glass, paper, other). Respond with JSON: {"type": "plastic", "confidence": 0.95}'
-            },
-            {
-              type: 'image_url',
-              image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
-            }
-          ]
-        }
-      ]
-    })
-  });
-  
-  const data = await response.json();
-  const classification = JSON.parse(data.choices[0].message.content);
-  
-  return new Response(JSON.stringify(classification), {
-    headers: { 'Content-Type': 'application/json' }
-  });
-});
-```
-
-#### Client-side Usage:
-
-```typescript
-async function classifyWasteImage(file: File) {
-  const reader = new FileReader();
-  
-  reader.onloadend = async () => {
-    const base64 = reader.result?.toString().split(',')[1];
-    
-    const { data, error } = await supabase.functions.invoke('classify-waste', {
-      body: { imageBase64: base64 }
-    });
-    
-    if (data) {
-      console.log('Waste type:', data.type);
-      console.log('Confidence:', data.confidence);
-    }
-  };
-  
-  reader.readAsDataURL(file);
-}
-```
-
-### 2. Personalized Event Recommendations
-
-Use collaborative filtering based on user behavior.
-
-#### Edge Function: recommend-events
-
-```typescript
-// Simplified recommendation algorithm
-async function recommendEvents(userId: string) {
-  // 1. Get user's past events
-  const { data: pastEvents } = await supabase
-    .from('event_registrations')
-    .select('event:events(*)')
-    .eq('user_id', userId);
-  
-  // 2. Find similar users (attended similar events)
-  const { data: similarUsers } = await supabase
-    .rpc('find_similar_users', { user_id: userId });
-  
-  // 3. Get events those users attended
-  const { data: recommendations } = await supabase
-    .from('events')
-    .select('*')
-    .in('organizer_id', similarUsers.map(u => u.id))
-    .eq('status', 'upcoming')
-    .limit(10);
-  
-  return recommendations;
-}
-```
-
-### 3. Chatbot with Lovable AI
-
-Create an AI assistant for volunteers.
-
-#### Edge Function: chatbot
-
-```typescript
-serve(async (req) => {
-  const { message, conversationHistory } = await req.json();
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  
-  const messages = [
-    {
-      role: 'system',
-      content: 'You are Eco-Bot, a helpful assistant for Eco-Sanjivani. Help users with event information, cleanup tips, and environmental questions. Be friendly and encouraging.'
-    },
-    ...conversationHistory,
-    { role: 'user', content: message }
-  ];
-  
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages,
-      stream: true
-    })
-  });
-  
-  // Stream response back to client
-  return new Response(response.body, {
-    headers: { 'Content-Type': 'text/event-stream' }
-  });
-});
-```
-
-#### Client Implementation:
-
-```typescript
-function Chatbot() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  
-  const sendMessage = async () => {
-    const newMessage = { role: 'user', content: input };
-    setMessages([...messages, newMessage]);
-    
-    // Call edge function
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chatbot`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
-        },
-        body: JSON.stringify({
-          message: input,
-          conversationHistory: messages
-        })
-      }
-    );
-    
-    // Handle streaming response
-    const reader = response.body.getReader();
-    let botMessage = '';
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      const text = new TextDecoder().decode(value);
-      botMessage += text;
-      
-      // Update UI in real-time
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { role: 'assistant', content: botMessage }
-      ]);
-    }
-  };
-  
-  return (
-    <div className="chatbot">
-      <div className="messages">
-        {messages.map((msg, i) => (
-          <div key={i} className={msg.role}>
-            {msg.content}
-          </div>
-        ))}
-      </div>
-      <input value={input} onChange={e => setInput(e.target.value)} />
-      <button onClick={sendMessage}>Send</button>
-    </div>
-  );
-}
-```
-
-### 4. Predictive Analytics
-
-Forecast cleanup success rates.
-
-```typescript
-// Simple regression model for impact prediction
-async function predictCleanupImpact(eventData: {
-  location: string;
-  expectedVolunteers: number;
-  weatherCondition: string;
-  coastlineLength: number;
-}) {
-  // Train on historical data
-  const { data: historicalCleanups } = await supabase
-    .from('cleanups')
-    .select('*, event:events(*)');
-  
-  // Simple linear regression (in production, use proper ML library)
-  const avgWastePerVolunteer = historicalCleanups.reduce(
-    (sum, c) => sum + (c.waste_collected_kg / c.event.actual_participants),
-    0
-  ) / historicalCleanups.length;
-  
-  const weatherMultiplier = {
-    sunny: 1.2,
-    cloudy: 1.0,
-    rainy: 0.6
-  }[eventData.weatherCondition] || 1.0;
-  
-  const predictedWaste = 
-    eventData.expectedVolunteers * 
-    avgWastePerVolunteer * 
-    weatherMultiplier;
-  
-  return {
-    predictedWasteKg: predictedWaste,
-    predictedCoastlineCleanedM: eventData.coastlineLength * 0.8,
-    confidence: 0.75
-  };
-}
-```
-
-### 5. Sentiment Analysis on Social Feed
-
-Analyze user posts to understand community mood.
-
-```typescript
-async function analyzeSentiment(postContent: string) {
-  const { data, error } = await supabase.functions.invoke('analyze-sentiment', {
-    body: { text: postContent }
-  });
-  
-  // Use Lovable AI for sentiment analysis
-  // Edge function would call:
-  // model: 'google/gemini-2.5-flash'
-  // prompt: 'Analyze sentiment: positive, negative, neutral. Return JSON.'
-  
-  return data.sentiment; // 'positive' | 'negative' | 'neutral'
-}
-```
-
-### Best Practices for AI Integration
-
-1. **Use Lovable AI First**: It requires no API keys and is pre-configured
-2. **Implement Fallbacks**: Always have non-AI alternatives
-3. **Cache Results**: Store AI responses to reduce costs
-4. **Rate Limit**: Prevent abuse of expensive AI calls
-5. **Privacy**: Never send PII to AI models without user consent
-6. **Transparency**: Inform users when AI is being used
-7. **Testing**: Validate AI responses before showing to users
 
 ---
 
@@ -1789,115 +1583,89 @@ async function analyzeSentiment(postContent: string) {
 
 ### Common Issues
 
-#### 1. "Supabase client not initialized"
+#### Map Not Loading
 
-**Solution**: Make sure you're importing the client correctly:
 ```typescript
-import { supabase } from '@/integrations/supabase/client';
+// Check if Mapbox token is configured
+const { data, error } = await supabase.functions.invoke('mapbox-token');
+console.log('Token received:', !!data?.token);
+
+// Verify edge function is deployed
+// Check Supabase > Edge Functions > mapbox-token
 ```
 
-#### 2. RLS Policy Denying Access
+#### Real-time Not Working
 
-**Error**: `new row violates row-level security policy`
-
-**Solution**: Check RLS policies and ensure user is authenticated:
-```sql
--- View policies
-SELECT * FROM pg_policies WHERE tablename = 'your_table';
-
--- Grant proper access
-CREATE POLICY "policy_name" ON your_table
-FOR INSERT TO authenticated
-USING (auth.uid() = user_id);
-```
-
-#### 3. CORS Errors in Edge Functions
-
-**Error**: `Access-Control-Allow-Origin header missing`
-
-**Solution**: Add CORS headers:
 ```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Verify table has realtime enabled
+// ALTER PUBLICATION supabase_realtime ADD TABLE events;
 
-// Return CORS headers in all responses
-return new Response(data, { headers: corsHeaders });
+// Check subscription status
+const channel = supabase.channel('events')
+  .on('postgres_changes', { ... }, callback)
+  .subscribe((status) => {
+    console.log('Subscription status:', status);
+  });
 ```
 
-#### 4. Build Errors
+#### Authentication Issues
 
-**Error**: `Module not found` or type errors
-
-**Solution**:
-```bash
-# Clear cache
-rm -rf node_modules
-rm -rf dist
-rm bun.lockb
-
-# Reinstall
-bun install
-
-# Rebuild
-bun run build
-```
-
-#### 5. Real-time Not Working
-
-**Solution**: Enable realtime on your table:
-```sql
-ALTER PUBLICATION supabase_realtime ADD TABLE your_table;
-```
-
-### Debug Tools
-
-#### React DevTools
-Install browser extension to inspect component tree and state.
-
-#### Network Tab
-Check API calls in browser DevTools Network tab.
-
-#### Supabase Logs
-View backend logs in Lovable Cloud interface.
-
-#### Console Logs
 ```typescript
-// Add strategic logging
-console.log('User data:', userData);
-console.log('Query result:', { data, error });
+// Check if user is authenticated
+const { data: { user } } = await supabase.auth.getUser();
+console.log('Current user:', user);
+
+// Verify RLS policies
+// Check Supabase > Database > Tables > Policies
+```
+
+### Debug Logging
+
+```typescript
+// Enable debug mode in Supabase client
+const supabase = createClient(url, key, {
+  auth: {
+    debug: true,
+  },
+});
+```
+
+### Performance Monitoring
+
+```typescript
+// Log query performance
+const start = performance.now();
+const { data } = await supabase.from('events').select('*');
+const end = performance.now();
+console.log(`Query took ${end - start}ms`);
 ```
 
 ---
 
 ## Additional Resources
 
-### Documentation Links
-
-- [React Docs](https://react.dev)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Radix UI](https://www.radix-ui.com/primitives/docs/overview/introduction)
-- [Supabase Docs](https://supabase.com/docs)
-- [TanStack Query](https://tanstack.com/query/latest)
-- [React Router](https://reactrouter.com/)
-
-### Learning Resources
-
-- [Frontend Masters](https://frontendmasters.com)
-- [Egghead.io](https://egghead.io)
-- [Supabase YouTube](https://www.youtube.com/@Supabase)
-
-### Community
-
-- [Lovable Discord](https://discord.gg/lovable)
-- [React Discord](https://discord.gg/react)
-- [Supabase Discord](https://discord.supabase.com)
+- **Official Documentation**: [https://docs.lovable.dev/](https://docs.lovable.dev/)
+- **Supabase Docs**: [https://supabase.com/docs](https://supabase.com/docs)
+- **React Documentation**: [https://react.dev/](https://react.dev/)
+- **Tailwind CSS**: [https://tailwindcss.com/](https://tailwindcss.com/)
+- **Mapbox GL JS**: [https://docs.mapbox.com/mapbox-gl-js/](https://docs.mapbox.com/mapbox-gl-js/)
 
 ---
 
-**Last Updated**: November 2024  
-**Version**: 1.0.0
+## Contributing
 
-For questions or contributions, please reach out to the Eco-Sanjivani team.
+See [README.md](./README.md) for contribution guidelines.
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ for India's marine ecosystems</sub>
+  <br>
+  <sub>© 2025 Eco-Sanjivani. All rights reserved.</sub>
+</div>
