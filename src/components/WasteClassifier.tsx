@@ -128,7 +128,26 @@ const WasteClassifier = () => {
       }
 
       console.log('Classification result:', data);
-      setResult(data as ClassificationResult);
+      const classificationResult = data as ClassificationResult;
+      setResult(classificationResult);
+      
+      // Save classification to database
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('waste_classifications').insert({
+          user_id: user.id,
+          waste_type: classificationResult.wasteType,
+          confidence: classificationResult.confidence,
+          sub_category: classificationResult.subCategory,
+          recyclable: classificationResult.recyclable,
+          estimated_weight: classificationResult.estimatedWeight,
+          volume_estimation: classificationResult.volumeEstimation,
+          environmental_impact: classificationResult.environmentalImpact,
+          disposal_recommendation: classificationResult.disposalRecommendation,
+          image_url: selectedImage.substring(0, 100) // Store truncated for reference
+        });
+      }
+      
       toast.success('Waste classified successfully!');
     } catch (error: any) {
       console.error('Classification error:', error);

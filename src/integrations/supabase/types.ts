@@ -125,6 +125,101 @@ export type Database = {
           },
         ]
       }
+      event_participants: {
+        Row: {
+          checked_in: boolean
+          checked_in_at: string | null
+          event_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          checked_in?: boolean
+          checked_in_at?: string | null
+          event_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          checked_in?: boolean
+          checked_in_at?: string | null
+          event_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          current_volunteers: number
+          date: string
+          description: string
+          difficulty: string
+          id: string
+          image: string | null
+          location: string
+          max_volunteers: number
+          name: string
+          points_reward: number
+          status: string
+          time: string
+          updated_at: string
+          waste_target: string[]
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          current_volunteers?: number
+          date: string
+          description: string
+          difficulty: string
+          id?: string
+          image?: string | null
+          location: string
+          max_volunteers: number
+          name: string
+          points_reward?: number
+          status?: string
+          time: string
+          updated_at?: string
+          waste_target?: string[]
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          current_volunteers?: number
+          date?: string
+          description?: string
+          difficulty?: string
+          id?: string
+          image?: string | null
+          location?: string
+          max_volunteers?: number
+          name?: string
+          points_reward?: number
+          status?: string
+          time?: string
+          updated_at?: string
+          waste_target?: string[]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -152,6 +247,75 @@ export type Database = {
           id?: string
           location?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          available: boolean
+          category: string
+          created_at: string
+          description: string
+          icon: string | null
+          id: string
+          name: string
+          points_cost: number
+        }
+        Insert: {
+          available?: boolean
+          category: string
+          created_at?: string
+          description: string
+          icon?: string | null
+          id?: string
+          name: string
+          points_cost: number
+        }
+        Update: {
+          available?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          points_cost?: number
+        }
+        Relationships: []
+      }
+      social_posts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          likes: number
+          location: string | null
+          metadata: Json | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes?: number
+          location?: string | null
+          metadata?: Json | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes?: number
+          location?: string | null
+          metadata?: Json | null
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -226,6 +390,35 @@ export type Database = {
           },
         ]
       }
+      user_rewards: {
+        Row: {
+          claimed_at: string
+          id: string
+          reward_id: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          reward_id: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rewards_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_stats: {
         Row: {
           cleanups_count: number
@@ -278,6 +471,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      waste_classifications: {
+        Row: {
+          confidence: number
+          created_at: string
+          disposal_recommendation: string
+          environmental_impact: string
+          estimated_weight: string
+          id: string
+          image_url: string | null
+          recyclable: boolean
+          sub_category: string
+          user_id: string
+          volume_estimation: Json | null
+          waste_type: string
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          disposal_recommendation: string
+          environmental_impact: string
+          estimated_weight: string
+          id?: string
+          image_url?: string | null
+          recyclable: boolean
+          sub_category: string
+          user_id: string
+          volume_estimation?: Json | null
+          waste_type: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          disposal_recommendation?: string
+          environmental_impact?: string
+          estimated_weight?: string
+          id?: string
+          image_url?: string | null
+          recyclable?: boolean
+          sub_category?: string
+          user_id?: string
+          volume_estimation?: Json | null
+          waste_type?: string
+        }
+        Relationships: []
       }
     }
     Views: {

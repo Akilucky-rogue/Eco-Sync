@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,244 +6,253 @@ import { TrendingUp, Users, Award, Recycle, Calendar, MapPin } from "lucide-reac
 import StatCard from "@/components/StatCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import QuickActions from "@/components/QuickActions";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import ErrorBoundary from "../components/ErrorBoundary";
+import PageLoader from "../components/PageLoader";
+import ErrorMessage from "../components/ErrorMessage";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const overallStats = {
-    totalWasteCollected: 4567,
-    totalVolunteers: 2156,
-    eventsCompleted: 78,
-    coastlineRestored: 28.5
-  };
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    totalWasteCollected: 0,
+    totalVolunteers: 0,
+    eventsCompleted: 0,
+    coastlineRestored: 0
+  });
+  const [activities, setActivities] = useState<any[]>([]);
 
-  const monthlyData = [
-    { month: "Aug", waste: 520, volunteers: 156, events: 12 },
-    { month: "Sep", waste: 680, volunteers: 234, events: 18 },
-    { month: "Oct", waste: 590, volunteers: 189, events: 15 },
-    { month: "Nov", waste: 745, volunteers: 298, events: 22 },
-    { month: "Dec", waste: 2032, volunteers: 1279, events: 11 } // Current month (partial)
-  ];
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [authLoading, user, navigate]);
 
-  const wasteBreakdown = [
-    { type: "Plastic", amount: 2284, percentage: 50, color: "bg-red-500" },
-    { type: "Organic", amount: 913, percentage: 20, color: "bg-green-500" },
-    { type: "Paper", amount: 685, percentage: 15, color: "bg-blue-500" },
-    { type: "Metal", amount: 457, percentage: 10, color: "bg-yellow-500" },
-    { type: "Glass", amount: 228, percentage: 5, color: "bg-gray-500" }
-  ];
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
 
-  const topLocations = [
-    { name: "Mumbai Marine Drive", cleanups: 18, waste: "756 kg", impact: "High" },
-    { name: "Chennai Marina Beach", cleanups: 15, waste: "634 kg", impact: "High" },
-    { name: "Goa Beaches", cleanups: 12, waste: "523 kg", impact: "Medium" },
-    { name: "Kochi Backwaters", cleanups: 9, waste: "412 kg", impact: "Medium" },
-    { name: "Visakhapatnam Coast", cleanups: 8, waste: "389 kg", impact: "High" },
-    { name: "Puri Beach", cleanups: 6, waste: "298 kg", impact: "Medium" }
-  ];
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'High': return 'text-green-600 bg-green-100';
-      case 'Medium': return 'text-yellow-600 bg-yellow-100';
-      case 'Low': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      // Get total waste collected
+      const { data: cleanupData, error: cleanupError } = await supabase
+        .from('cleanups')
+        .select('waste_collected');
+
+      if (cleanupError) throw cleanupError;
+
+      const totalWaste = cleanupData?.reduce((sum, cleanup) => 
+        sum + Number(cleanup.waste_collected), 0) || 0;
+
+      // Get total volunteers (unique users)
+      const { count: volunteersCount, error: volunteersError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (volunteersError) throw volunteersError;
+
+      // Get completed events count
+      const { count: eventsCount, error: eventsError } = await supabase
+        .from('events')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed');
+
+      if (eventsError) throw eventsError;
+
+      // Get recent activities from social posts
+      const { data: postsData, error: postsError } = await supabase
+        .from('social_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (postsError) throw postsError;
+
+      setStats({
+        totalWasteCollected: Math.round(totalWaste),
+        totalVolunteers: volunteersCount || 0,
+        eventsCompleted: eventsCount || 0,
+        coastlineRestored: Math.round(totalWaste / 100) // Estimate: 100kg per km
+      });
+
+      // Transform posts into activity feed format
+      setActivities(postsData?.map(post => ({
+        id: post.id,
+        type: post.type,
+        user: { name: 'User' }, // Would need to join with profiles
+        content: post.content,
+        location: post.location,
+        timestamp: new Date(post.created_at),
+        metadata: typeof post.metadata === 'object' ? post.metadata : {}
+      })) || []);
+
+    } catch (error: any) {
+      console.error('Error loading dashboard:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const wasteBreakdown = [
+    { type: "Plastic", amount: Math.round(stats.totalWasteCollected * 0.5), percentage: 50, color: "bg-red-500" },
+    { type: "Organic", amount: Math.round(stats.totalWasteCollected * 0.2), percentage: 20, color: "bg-green-500" },
+    { type: "Paper", amount: Math.round(stats.totalWasteCollected * 0.15), percentage: 15, color: "bg-blue-500" },
+    { type: "Metal", amount: Math.round(stats.totalWasteCollected * 0.1), percentage: 10, color: "bg-yellow-500" },
+    { type: "Glass", amount: Math.round(stats.totalWasteCollected * 0.05), percentage: 5, color: "bg-gray-500" }
+  ];
+
+  if (authLoading || loading) {
+    return (
+      <div className="container mx-auto p-4">
+        <PageLoader text="Loading dashboard..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <ErrorMessage 
+          title="Failed to load dashboard"
+          message={error}
+          onRetry={loadDashboardData}
+        />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
       <div className="container mx-auto p-4 space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#014F86] mb-2">Impact Dashboard</h1>
-        <p className="text-gray-600">Track our collective environmental impact across India's coastline and community growth</p>
-      </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#014F86] mb-2">Impact Dashboard</h1>
+          <p className="text-gray-600">Track our collective environmental impact across India's coastline and community growth</p>
+        </div>
 
-      {/* Quick Actions */}
-      <QuickActions variant="horizontal" className="mb-6" />
+        {/* Quick Actions */}
+        <QuickActions variant="horizontal" className="mb-6" />
 
-      {/* Enhanced Overview Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          title="Waste Collected"
-          value={overallStats.totalWasteCollected}
-          subtitle="kg"
-          icon={Recycle}
-          trend={{ value: 12, label: "vs last month", direction: "up" }}
-          variant="success"
-        />
-        <StatCard
-          title="Active Volunteers"
-          value={overallStats.totalVolunteers}
-          icon={Users}
-          trend={{ value: 8, label: "this week", direction: "up" }}
-          variant="default"
-        />
-        <StatCard
-          title="Events Completed"
-          value={overallStats.eventsCompleted}
-          icon={Calendar}
-          trend={{ value: 15, label: "this month", direction: "up" }}
-          variant="warning"
-        />
-        <StatCard
-          title="Coastline Restored"
-          value={overallStats.coastlineRestored}
-          subtitle="km"
-          icon={MapPin}
-          trend={{ value: 5, label: "this quarter", direction: "up" }}
-          variant="success"
-        />
-      </div>
-
-      <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="breakdown">Waste Data</TabsTrigger>
-          <TabsTrigger value="locations">Locations</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="analytics" className="space-y-4">
-          {/* Monthly Trends */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#014F86]">
-                <TrendingUp className="h-5 w-5" />
-                Monthly Trends
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {monthlyData.map((month) => (
-                  <div key={month.month} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-[#014F86]">{month.month} 2024</span>
-                      <div className="text-right text-sm">
-                        <div>{month.waste}kg waste • {month.volunteers} volunteers • {month.events} events</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <div className="text-xs text-gray-600 mb-1">Waste</div>
-                        <Progress value={(month.waste / 800) * 100} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-600 mb-1">Volunteers</div>
-                        <Progress value={(month.volunteers / 300) * 100} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-600 mb-1">Events</div>
-                        <Progress value={(month.events / 25) * 100} className="h-2" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="breakdown" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-[#014F86]">Waste Type Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {wasteBreakdown.map((waste) => (
-                  <div key={waste.type} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">{waste.type}</span>
-                      <span className="text-sm text-gray-600">{waste.amount}kg ({waste.percentage}%)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-gray-200 rounded-full h-3">
-                        <div 
-                          className={`h-3 rounded-full ${waste.color}`}
-                          style={{ width: `${waste.percentage}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium">{waste.percentage}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="locations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-[#014F86]">Top Cleanup Locations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {topLocations.map((location, index) => (
-                  <div key={location.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-[#FF6F61] text-white rounded-full flex items-center justify-center font-bold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-[#014F86]">{location.name}</h4>
-                        <p className="text-sm text-gray-600">{location.cleanups} cleanups • {location.waste}</p>
-                      </div>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${getImpactColor(location.impact)}`}>
-                      {location.impact} Impact
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-4">
-          <ActivityFeed 
-            activities={[
-              {
-                id: '1',
-                type: 'cleanup',
-                user: { name: 'Priya Sharma', avatar: '' },
-                content: 'Completed cleanup at Marina Beach and collected 12kg of plastic waste',
-                location: 'Chennai Marina Beach',
-                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                metadata: { points: 120, participants: 15 }
-              },
-              {
-                id: '2',
-                type: 'achievement',
-                user: { name: 'Raj Patel' },
-                content: 'Earned the "Waste Warrior" badge for collecting 50kg of waste',
-                timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-                metadata: { points: 250 }
-              },
-              {
-                id: '3',
-                type: 'team_join',
-                user: { name: 'Anisha Gupta' },
-                content: 'Joined the Mumbai Marine Guardians team',
-                location: 'Mumbai Marine Drive',
-                timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-                metadata: { participants: 24 }
-              },
-              {
-                id: '4',
-                type: 'photo',
-                user: { name: 'Vikram Singh' },
-                content: 'Shared before/after photos from Goa beach cleanup',
-                location: 'Calangute Beach, Goa',
-                timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-                metadata: { likes: 42 }
-              }
-            ]}
-            limit={8}
+        {/* Enhanced Overview Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            title="Waste Collected"
+            value={stats.totalWasteCollected}
+            subtitle="kg"
+            icon={Recycle}
+            trend={{ value: 12, label: "vs last month", direction: "up" }}
+            variant="success"
           />
-        </TabsContent>
-      </Tabs>
-    </div>
+          <StatCard
+            title="Active Volunteers"
+            value={stats.totalVolunteers}
+            icon={Users}
+            trend={{ value: 8, label: "this week", direction: "up" }}
+            variant="default"
+          />
+          <StatCard
+            title="Events Completed"
+            value={stats.eventsCompleted}
+            icon={Calendar}
+            trend={{ value: 15, label: "this month", direction: "up" }}
+            variant="warning"
+          />
+          <StatCard
+            title="Coastline Restored"
+            value={stats.coastlineRestored}
+            subtitle="km"
+            icon={MapPin}
+            trend={{ value: 5, label: "this quarter", direction: "up" }}
+            variant="success"
+          />
+        </div>
+
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="breakdown">Waste Data</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="analytics" className="space-y-4">
+            {/* Monthly Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#014F86]">
+                  <TrendingUp className="h-5 w-5" />
+                  Community Growth
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 text-center py-8">
+                  <Award className="h-16 w-16 text-brand-primary mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-brand-primary">
+                    {stats.totalWasteCollected}kg Total Waste Collected
+                  </h3>
+                  <p className="text-gray-600">
+                    Our community has made a significant impact on coastal conservation!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="breakdown" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-[#014F86]">Waste Type Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {wasteBreakdown.map((waste) => (
+                    <div key={waste.type} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{waste.type}</span>
+                        <span className="text-sm text-gray-600">{waste.amount}kg ({waste.percentage}%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-3">
+                          <div 
+                            className={`h-3 rounded-full ${waste.color}`}
+                            style={{ width: `${waste.percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium">{waste.percentage}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="activity" className="space-y-4">
+            {activities.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No recent activity</h3>
+                  <p className="text-gray-500">Start participating to see activity here!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <ActivityFeed 
+                activities={activities}
+                limit={10}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </ErrorBoundary>
   );
 };

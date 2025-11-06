@@ -1,102 +1,188 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Users, Camera, Trophy } from "lucide-react";
 import TeamCard from "./TeamCard";
 import PhotoShareCard from "./PhotoShareCard";
+import PageLoader from "./PageLoader";
+import ErrorMessage from "./ErrorMessage";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const SocialFeed = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [socialPosts, setSocialPosts] = useState<any[]>([]);
 
-  // Mock data for teams
-  const teams = [
-    {
-      id: "1",
-      name: "Mumbai Beach Warriors",
-      description: "Dedicated to cleaning Mumbai's coastline every weekend",
-      members: [
-        { id: "1", name: "Ravi Kumar", role: 'leader' as const, joinedAt: "2024-01-15" },
-        { id: "2", name: "Priya Singh", role: 'member' as const, joinedAt: "2024-02-01" },
-        { id: "3", name: "Amit Shah", role: 'member' as const, joinedAt: "2024-02-15" },
-        { id: "4", name: "Neha Patel", role: 'member' as const, joinedAt: "2024-03-01" }
-      ],
-      location: "Mumbai, Maharashtra",
-      nextEvent: "Dec 15, 2024",
-      isPublic: true,
-      maxMembers: 20
-    },
-    {
-      id: "2",
-      name: "Goa Eco Guardians",
-      description: "Protecting Goa's pristine beaches and marine life",
-      members: [
-        { id: "5", name: "Maria D'Souza", role: 'leader' as const, joinedAt: "2024-01-10" },
-        { id: "6", name: "João Silva", role: 'member' as const, joinedAt: "2024-01-20" },
-        { id: "7", name: "Sunita Rao", role: 'member' as const, joinedAt: "2024-02-05" }
-      ],
-      location: "Goa",
-      nextEvent: "Dec 12, 2024",
-      isPublic: true,
-      maxMembers: 15
+  useEffect(() => {
+    if (user) {
+      loadData();
     }
-  ];
+  }, [user]);
 
-  // Mock data for photos
-  const photos = [
-    {
-      id: "1",
-      user: { name: "Ravi Kumar", avatar: "" },
-      image: "/placeholder.svg",
-      caption: "Amazing cleanup at Juhu Beach today! Collected 50kg of plastic waste with the team. 🌊♻️",
-      location: "Juhu Beach, Mumbai",
-      eventName: "Weekend Cleanup",
-      timestamp: "2 hours ago",
-      likes: 24,
-      comments: 8,
-      tags: ["BeachCleanup", "Mumbai", "Teamwork"],
-      isLiked: false
-    },
-    {
-      id: "2",
-      user: { name: "Priya Singh", avatar: "" },
-      image: "/placeholder.svg",
-      caption: "Before and after shots from our mangrove restoration project. Nature is healing! 🌱",
-      location: "Mangrove Park, Navi Mumbai",
-      eventName: "Mangrove Restoration",
-      timestamp: "1 day ago",
-      likes: 36,
-      comments: 12,
-      tags: ["Mangroves", "Restoration", "Conservation"],
-      isLiked: true
+  // Realtime subscriptions
+  useEffect(() => {
+    if (!user) return;
+
+    const teamsChannel = supabase
+      .channel('teams-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teams'
+        },
+        () => loadTeams()
+      )
+      .subscribe();
+
+    const postsChannel = supabase
+      .channel('social-posts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'social_posts'
+        },
+        () => loadSocialPosts()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(teamsChannel);
+      supabase.removeChannel(postsChannel);
+    };
+  }, [user]);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await Promise.all([loadTeams(), loadSocialPosts()]);
+    } catch (error: any) {
+      console.error('Error loading social feed:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const handleJoinTeam = (teamId: string) => {
-    console.log("Joining team:", teamId);
-    // Implementation for joining team
+  const loadTeams = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('teams')
+        .select(`
+          *,
+          team_members(user_id, role, joined_at)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      setTeams(data?.map(team => ({
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        members: team.team_members?.map((m: any) => ({
+          id: m.user_id,
+          name: 'Member', // Would need to join with profiles
+          role: m.role,
+          joinedAt: new Date(m.joined_at).toLocaleDateString()
+        })) || [],
+        location: 'Unknown',
+        nextEvent: 'TBD',
+        isPublic: true,
+        maxMembers: 20
+      })) || []);
+    } catch (error: any) {
+      console.error('Error loading teams:', error);
+    }
+  };
+
+  const loadSocialPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('social_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      setSocialPosts(data?.filter(post => post.type === 'photo').map(post => ({
+        id: post.id,
+        user: { name: 'User', avatar: '' }, // Would need to join with profiles
+        image: post.image_url || '/placeholder.svg',
+        caption: post.content,
+        location: post.location || 'Unknown',
+        eventName: 'Event',
+        timestamp: new Date(post.created_at).toLocaleDateString(),
+        likes: post.likes,
+        comments: 0,
+        tags: [],
+        isLiked: false
+      })) || []);
+    } catch (error: any) {
+      console.error('Error loading social posts:', error);
+    }
+  };
+
+  const handleJoinTeam = async (teamId: string) => {
+    if (!user) return;
+
+    try {
+      await supabase.from('team_members').insert({
+        team_id: teamId,
+        user_id: user.id,
+        role: 'member'
+      });
+      loadTeams();
+    } catch (error) {
+      console.error('Error joining team:', error);
+    }
   };
 
   const handleViewTeam = (teamId: string) => {
     console.log("Viewing team:", teamId);
-    // Implementation for viewing team details
   };
 
-  const handleLikePhoto = (photoId: string) => {
-    console.log("Liking photo:", photoId);
-    // Implementation for liking photo
+  const handleLikePhoto = async (photoId: string) => {
+    try {
+      const post = socialPosts.find(p => p.id === photoId);
+      if (post) {
+        await supabase
+          .from('social_posts')
+          .update({ likes: post.likes + 1 })
+          .eq('id', photoId);
+        loadSocialPosts();
+      }
+    } catch (error) {
+      console.error('Error liking photo:', error);
+    }
   };
 
   const handleCommentPhoto = (photoId: string) => {
     console.log("Commenting on photo:", photoId);
-    // Implementation for commenting on photo
   };
 
   const handleSharePhoto = (photoId: string) => {
     console.log("Sharing photo:", photoId);
-    // Implementation for sharing photo
   };
+
+  if (loading) {
+    return <PageLoader text="Loading community feed..." />;
+  }
+
+  if (error) {
+    return <ErrorMessage title="Failed to load feed" message={error} onRetry={loadData} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -142,31 +228,47 @@ const SocialFeed = () => {
         </TabsList>
 
         <TabsContent value="teams" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams.map((team) => (
-              <TeamCard
-                key={team.id}
-                team={team}
-                onJoin={handleJoinTeam}
-                onView={handleViewTeam}
-                isUserMember={false}
-              />
-            ))}
-          </div>
+          {teams.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No teams yet</h3>
+              <p className="text-gray-500">Be the first to create a team!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {teams.map((team) => (
+                <TeamCard
+                  key={team.id}
+                  team={team}
+                  onJoin={handleJoinTeam}
+                  onView={handleViewTeam}
+                  isUserMember={false}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {photos.map((photo) => (
-              <PhotoShareCard
-                key={photo.id}
-                photo={photo}
-                onLike={handleLikePhoto}
-                onComment={handleCommentPhoto}
-                onShare={handleSharePhoto}
-              />
-            ))}
-          </div>
+          {socialPosts.length === 0 ? (
+            <div className="text-center py-12">
+              <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No photos yet</h3>
+              <p className="text-gray-500">Share your cleanup photos with the community!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {socialPosts.map((photo) => (
+                <PhotoShareCard
+                  key={photo.id}
+                  photo={photo}
+                  onLike={handleLikePhoto}
+                  onComment={handleCommentPhoto}
+                  onShare={handleSharePhoto}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-6">

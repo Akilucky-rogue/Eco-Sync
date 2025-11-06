@@ -1,118 +1,207 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Trophy } from "lucide-react";
 import EventCard from "../components/EventCard";
 import PastEventCard from "../components/PastEventCard";
 import EventsHeader from "../components/EventsHeader";
 import ErrorBoundary from "../components/ErrorBoundary";
+import PageLoader from "../components/PageLoader";
+import ErrorMessage from "../components/ErrorMessage";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+interface Event {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  current_volunteers: number;
+  max_volunteers: number;
+  points_reward: number;
+  category: string;
+  difficulty: string;
+  waste_target: string[];
+  status: string;
+  image: string;
+}
 
 const Events = () => {
-  const [joinedEvents, setJoinedEvents] = useState<number[]>([]);
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [pastEvents, setPastEvents] = useState<any[]>([]);
+  const [joinedEvents, setJoinedEvents] = useState<string[]>([]);
 
-  const allEvents = [
-    {
-      id: 1,
-      name: "Mumbai Marine Drive Cleanup",
-      date: "Dec 15, 2024",
-      time: "6:00 AM - 9:00 AM",
-      location: "Marine Drive, Mumbai, Maharashtra",
-      description: "Join us for a comprehensive beach cleanup focusing on plastic waste removal and marine debris collection along Mumbai's iconic Marine Drive.",
-      volunteers: 85,
-      maxVolunteers: 120,
-      pointsReward: 60,
-      category: "Beach Cleanup",
-      difficulty: "Beginner",
-      wasteTarget: ["Plastic bottles", "Food wrappers", "Cigarette butts", "Polythene bags"],
-      status: "upcoming",
-      image: "🏖️"
-    },
-    {
-      id: 2,
-      name: "Goa Beach Restoration",
-      date: "Dec 22, 2024",
-      time: "7:00 AM - 10:00 AM",
-      location: "Baga Beach, Goa",
-      description: "Restore the natural beauty of Goa's beaches while protecting marine wildlife habitats and preserving coastal biodiversity.",
-      volunteers: 67,
-      maxVolunteers: 100,
-      pointsReward: 80,
-      category: "Coastal Restoration",
-      difficulty: "Intermediate",
-      wasteTarget: ["Glass bottles", "Metal cans", "Plastic debris", "Fishing nets"],
-      status: "upcoming",
-      image: "🌊"
-    },
-    {
-      id: 3,
-      name: "Chennai Marina Beach Care",
-      date: "Dec 29, 2024",
-      time: "5:30 AM - 8:30 AM",
-      location: "Marina Beach, Chennai, Tamil Nadu",
-      description: "Early morning cleanup at one of India's longest beaches to protect sensitive coastal ecosystems and nesting areas.",
-      volunteers: 52,
-      maxVolunteers: 80,
-      pointsReward: 75,
-      category: "Marine Protection",
-      difficulty: "Advanced",
-      wasteTarget: ["Large debris", "Rope", "Medical waste", "Industrial waste"],
-      status: "upcoming",
-      image: "🐠"
-    },
-    {
-      id: 4,
-      name: "Kochi Backwaters Conservation",
-      date: "Jan 5, 2025",
-      time: "6:30 AM - 9:30 AM",
-      location: "Kochi Backwaters, Kerala",
-      description: "Protect the unique backwater ecosystem while cleaning waterways and preserving mangrove habitats.",
-      volunteers: 43,
-      maxVolunteers: 70,
-      pointsReward: 85,
-      category: "Waterway Cleanup",
-      difficulty: "Intermediate",
-      wasteTarget: ["Plastic waste", "Coconut shells", "Paper waste", "Organic debris"],
-      status: "upcoming",
-      image: "🌴"
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
     }
-  ];
+  }, [authLoading, user, navigate]);
 
-  const pastEvents = [
-    {
-      id: 5,
-      name: "Juhu Beach Cleanup",
-      date: "Dec 1, 2024",
-      wasteCollected: "245 kg",
-      volunteers: 95,
-      pointsEarned: 70,
-      status: "completed",
-      image: "🏖️"
-    },
-    {
-      id: 6,
-      name: "Puri Beach Conservation",
-      date: "Nov 24, 2024",
-      wasteCollected: "189 kg",
-      volunteers: 68,
-      pointsEarned: 55,
-      status: "completed",
-      image: "🌅"
-    },
-    {
-      id: 7,
-      name: "Visakhapatnam Coastal Care",
-      date: "Nov 15, 2024",
-      wasteCollected: "312 kg",
-      volunteers: 128,
-      pointsEarned: 90,
-      status: "completed",
-      image: "⛵"
+  useEffect(() => {
+    if (user) {
+      loadEvents();
+      loadJoinedEvents();
     }
-  ];
+  }, [user]);
 
-  const handleJoinEvent = (eventId: number) => {
-    setJoinedEvents(prev => [...prev, eventId]);
+  // Realtime subscription for events
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('events-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events'
+        },
+        () => {
+          loadEvents();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_participants'
+        },
+        () => {
+          loadJoinedEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load upcoming events
+      const { data: upcoming, error: upcomingError } = await supabase
+        .from('events')
+        .select('*')
+        .in('status', ['upcoming', 'ongoing'])
+        .gte('date', new Date().toISOString().split('T')[0])
+        .order('date', { ascending: true });
+
+      if (upcomingError) throw upcomingError;
+
+      // Load past events with participant count
+      const { data: past, error: pastError } = await supabase
+        .from('events')
+        .select(`
+          *,
+          event_participants(count)
+        `)
+        .eq('status', 'completed')
+        .order('date', { ascending: false })
+        .limit(10);
+
+      if (pastError) throw pastError;
+
+      setUpcomingEvents(upcoming || []);
+      setPastEvents(past?.map(event => ({
+        id: event.id,
+        name: event.name,
+        date: new Date(event.date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        }),
+        wasteCollected: '0 kg', // This should come from cleanup records
+        volunteers: event.current_volunteers,
+        pointsEarned: event.points_reward,
+        status: event.status,
+        image: event.image || '🏖️'
+      })) || []);
+    } catch (error: any) {
+      console.error('Error loading events:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const loadJoinedEvents = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('event_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setJoinedEvents(data?.map(p => p.event_id) || []);
+    } catch (error) {
+      console.error('Error loading joined events:', error);
+    }
+  };
+
+  const handleJoinEvent = async (eventId: string) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('event_participants')
+        .insert({
+          event_id: eventId,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+
+      // Update volunteer count
+      const event = upcomingEvents.find(e => e.id === eventId);
+      if (event) {
+        await supabase
+          .from('events')
+          .update({ current_volunteers: event.current_volunteers + 1 })
+          .eq('id', eventId);
+      }
+
+      setJoinedEvents(prev => [...prev, eventId]);
+    } catch (error: any) {
+      console.error('Error joining event:', error);
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="container mx-auto p-4">
+        <PageLoader text="Loading events..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <ErrorMessage 
+          title="Failed to load events"
+          message={error}
+          onRetry={loadEvents}
+        />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -120,41 +209,76 @@ const Events = () => {
         <EventsHeader />
 
         <Tabs defaultValue="upcoming" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-2 bg-white shadow-lg rounded-xl border-0 p-1 h-14">
-          <TabsTrigger 
-            value="upcoming" 
-            className="rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF6F61] data-[state=active]:to-[#E55B50] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
-          >
-            <Calendar className="h-5 w-5 mr-2" />
-            Upcoming Events
-          </TabsTrigger>
-          <TabsTrigger 
-            value="past"
-            className="rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#014F86] data-[state=active]:to-[#0066A3] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
-          >
-            <Trophy className="h-5 w-5 mr-2" />
-            Past Events
-          </TabsTrigger>
-        </TabsList>
+          <TabsList className="grid w-full grid-cols-2 bg-white shadow-lg rounded-xl border-0 p-1 h-14">
+            <TabsTrigger 
+              value="upcoming" 
+              className="rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF6F61] data-[state=active]:to-[#E55B50] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              Upcoming Events
+            </TabsTrigger>
+            <TabsTrigger 
+              value="past"
+              className="rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#014F86] data-[state=active]:to-[#0066A3] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              <Trophy className="h-5 w-5 mr-2" />
+              Past Events
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="upcoming" className="space-y-6">
-          {allEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              isJoined={joinedEvents.includes(event.id)}
-              onJoin={handleJoinEvent}
-            />
-          ))}
-        </TabsContent>
+          <TabsContent value="upcoming" className="space-y-6">
+            {upcomingEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No upcoming events</h3>
+                <p className="text-gray-500">Check back soon for new cleanup events!</p>
+              </div>
+            ) : (
+              upcomingEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={{
+                    id: parseInt(event.id.split('-')[0], 16) % 10000,
+                    name: event.name,
+                    date: new Date(event.date).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    }),
+                    time: event.time,
+                    location: event.location,
+                    description: event.description,
+                    volunteers: event.current_volunteers,
+                    maxVolunteers: event.max_volunteers,
+                    pointsReward: event.points_reward,
+                    category: event.category,
+                    difficulty: event.difficulty,
+                    wasteTarget: event.waste_target,
+                    status: event.status,
+                    image: event.image || '🏖️'
+                  }}
+                  isJoined={joinedEvents.includes(event.id)}
+                  onJoin={() => handleJoinEvent(event.id)}
+                />
+              ))
+            )}
+          </TabsContent>
 
-        <TabsContent value="past" className="space-y-6">
-          {pastEvents.map((event) => (
-            <PastEventCard key={event.id} event={event} />
-          ))}
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="past" className="space-y-6">
+            {pastEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No past events</h3>
+                <p className="text-gray-500">Your completed events will appear here.</p>
+              </div>
+            ) : (
+              pastEvents.map((event) => (
+                <PastEventCard key={event.id} event={event} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </ErrorBoundary>
   );
 };

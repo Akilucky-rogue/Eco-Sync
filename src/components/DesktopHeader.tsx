@@ -45,7 +45,7 @@ const DesktopHeader = () => {
       <div className="container-responsive">
         <div className="flex items-center justify-between py-4">
           {/* Logo Section */}
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
             <div className="relative">
               <div className="w-10 h-10 bg-gradient-to-br from-brand-accent to-brand-accent/80 rounded-xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-6 transition-transform duration-300">
                 <span className="text-white font-bold text-lg transform -rotate-3">E</span>
@@ -58,7 +58,7 @@ const DesktopHeader = () => {
               </h1>
               <p className="text-xs text-blue-200 hidden lg:block">Marine Conservation Platform</p>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden xl:flex items-center gap-8">
