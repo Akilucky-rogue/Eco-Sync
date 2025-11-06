@@ -69,7 +69,7 @@ const Auth = () => {
     } else {
       toast({
         title: "Success!",
-        description: "Welcome back to EcoSync India",
+        description: "Welcome back to Eco-Sanjivani",
       });
     }
     
@@ -119,7 +119,7 @@ const Auth = () => {
     } else {
       toast({
         title: "Success!",
-        description: "Account created successfully. Welcome to EcoSync India!",
+        description: "Account created successfully. Welcome to Eco-Sanjivani!",
       });
     }
     
@@ -135,7 +135,7 @@ const Auth = () => {
               <Leaf className="h-8 w-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl">EcoSync India</CardTitle>
+          <CardTitle className="text-2xl">Eco-Sanjivani</CardTitle>
           <CardDescription>Join the movement for a cleaner environment</CardDescription>
         </CardHeader>
         <CardContent>

@@ -25,7 +25,7 @@ const Layout = ({ children }: LayoutProps) => {
               <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-brand-green rounded-full border border-white animate-pulse"></div>
             </div>
             <div>
-              <h1 className="text-lg font-bold">EcoSync</h1>
+              <h1 className="text-lg font-bold">Eco-Sanjivani</h1>
               <p className="text-xs text-blue-200">Marine Conservation</p>
             </div>
           </div>

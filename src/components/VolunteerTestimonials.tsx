@@ -22,7 +22,7 @@ const VolunteerTestimonials = () => {
       location: "Mumbai, Maharashtra",
       avatar: "👨‍💼",
       rating: 5,
-      message: "EcoSync has transformed how I contribute to marine conservation. The community is amazing and every cleanup feels meaningful!",
+      message: "Eco-Sanjivani has transformed how I contribute to marine conservation. The community is amazing and every cleanup feels meaningful!",
       eventsAttended: 15,
       dateJoined: "March 2024"
     },

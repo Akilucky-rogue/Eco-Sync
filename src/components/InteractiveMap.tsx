@@ -47,13 +47,19 @@ const InteractiveMap = () => {
 
   const loadEvents = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('events')
         .select('id, name, location, category, difficulty, points_reward, current_volunteers, max_volunteers')
         .eq('status', 'upcoming')
         .limit(20);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading events:', error);
+        throw error;
+      }
+
+      console.log('Loaded events:', data?.length);
 
       // Extract city names and add coordinates
       const eventsWithCoords = data?.map(event => {
@@ -66,24 +72,49 @@ const InteractiveMap = () => {
         };
       }).filter(event => event.coordinates) as EventLocation[];
 
+      console.log('Events with coordinates:', eventsWithCoords.length);
       setEvents(eventsWithCoords || []);
     } catch (error: any) {
       console.error('Error loading events:', error);
       setError(error.message);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!mapContainer.current || events.length === 0) return;
+    if (!mapContainer.current || events.length === 0) {
+      if (events.length === 0) {
+        console.log('Waiting for events to load...');
+      }
+      return;
+    }
+
+    console.log('Initializing map with', events.length, 'events');
 
     const initializeMap = async () => {
       try {
-        // Fetch Mapbox token from edge function
-        const { data, error } = await supabase.functions.invoke('mapbox-token');
+        setLoading(true);
+        console.log('Fetching Mapbox token...');
         
-        if (error) throw error;
-        if (!data?.token) throw new Error('No Mapbox token received');
+        // Fetch Mapbox token from edge function with timeout
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Token fetch timeout')), 10000)
+        );
+        
+        const fetchPromise = supabase.functions.invoke('mapbox-token');
+        
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        
+        if (error) {
+          console.error('Token fetch error:', error);
+          throw error;
+        }
+        if (!data?.token) {
+          console.error('No token received:', data);
+          throw new Error('No Mapbox token received');
+        }
 
+        console.log('Token received, initializing map...');
         mapboxgl.accessToken = data.token;
 
         // Initialize map centered on India
