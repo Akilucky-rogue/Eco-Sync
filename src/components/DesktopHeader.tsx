@@ -26,6 +26,7 @@ const DesktopHeader = () => {
   const primaryNavItems = [
     { href: "/", label: "Home" },
     { href: "/events", label: "Events" },
+    { href: "/waste-classifier", label: "AI Classifier" },
     { href: "/social", label: "Community" }
   ];
 
@@ -53,7 +54,7 @@ const DesktopHeader = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                EcoSync
+                Eco-Sanjivani
               </h1>
               <p className="text-xs text-blue-200 hidden lg:block">Marine Conservation Platform</p>
             </div>

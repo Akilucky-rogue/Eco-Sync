@@ -14,6 +14,7 @@ import Social from "./pages/Social";
 import NotFound from "./pages/NotFound";
 import EventManagement from "./pages/EventManagement";
 import Auth from "./pages/Auth";
+import WasteClassification from "./pages/WasteClassification";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
           <Route path="/gamification" element={<Layout><Gamification /></Layout>} />
           <Route path="/social" element={<Layout><Social /></Layout>} />
+          <Route path="/waste-classifier" element={<Layout><WasteClassification /></Layout>} />
           <Route path="/admin" element={<Layout><Admin /></Layout>} />
           <Route path="*" element={<Layout><NotFound /></Layout>} />
         </Routes>
