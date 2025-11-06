@@ -238,7 +238,7 @@ const Events = () => {
                 <EventCard
                   key={event.id}
                   event={{
-                    id: parseInt(event.id.split('-')[0], 16) % 10000,
+                    id: event.id,
                     name: event.name,
                     date: new Date(event.date).toLocaleDateString('en-US', { 
                       year: 'numeric', 

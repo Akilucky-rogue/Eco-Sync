@@ -6,7 +6,7 @@ import { MapPin, Calendar, Users, Clock, Award, CheckCircle, Star } from "lucide
 
 interface EventCardProps {
   event: {
-    id: number;
+    id: string;
     name: string;
     date: string;
     time: string;
@@ -22,7 +22,7 @@ interface EventCardProps {
     image: string;
   };
   isJoined: boolean;
-  onJoin: (eventId: number) => void;
+  onJoin: (eventId: string) => void;
 }
 
 const EventCard = ({ event, isJoined, onJoin }: EventCardProps) => {
