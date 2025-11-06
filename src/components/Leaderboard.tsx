@@ -1,7 +1,10 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Award, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LeaderboardEntry {
   rank: number;
@@ -11,56 +14,68 @@ interface LeaderboardEntry {
   wasteCollected: string;
   location: string;
   avatar: string;
+  userId: string;
 }
 
 const Leaderboard = () => {
-  const topVolunteers: LeaderboardEntry[] = [
-    {
-      rank: 1,
-      name: "Priya Sharma",
-      points: 2450,
-      eventsJoined: 24,
-      wasteCollected: "145 kg",
-      location: "Mumbai",
-      avatar: "👩‍🦱"
-    },
-    {
-      rank: 2,
-      name: "Rahul Patel",
-      points: 2180,
-      eventsJoined: 22,
-      wasteCollected: "132 kg",
-      location: "Ahmedabad",
-      avatar: "👨‍💼"
-    },
-    {
-      rank: 3,
-      name: "Ananya Singh",
-      points: 1950,
-      eventsJoined: 19,
-      wasteCollected: "118 kg",
-      location: "Chennai",
-      avatar: "👩‍🔬"
-    },
-    {
-      rank: 4,
-      name: "Vikram Kumar",
-      points: 1720,
-      eventsJoined: 17,
-      wasteCollected: "98 kg",
-      location: "Goa",
-      avatar: "👨‍🎓"
-    },
-    {
-      rank: 5,
-      name: "Sneha Reddy",
-      points: 1580,
-      eventsJoined: 16,
-      wasteCollected: "89 kg",
-      location: "Hyderabad",
-      avatar: "👩‍💻"
+  const { user } = useAuth();
+  const [topVolunteers, setTopVolunteers] = useState<LeaderboardEntry[]>([]);
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadLeaderboard();
+  }, [user]);
+
+  const loadLeaderboard = async () => {
+    try {
+      // Get top 5 users by points with their profile info
+      const { data, error } = await supabase
+        .from('user_stats')
+        .select(`
+          points,
+          cleanups_count,
+          waste_collected,
+          user_id,
+          profiles!inner(full_name, location, avatar_url)
+        `)
+        .order('points', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+
+      const leaderboard: LeaderboardEntry[] = data?.map((entry, index) => ({
+        rank: index + 1,
+        name: (entry.profiles as any)?.full_name || 'Anonymous',
+        points: entry.points,
+        eventsJoined: entry.cleanups_count,
+        wasteCollected: `${Number(entry.waste_collected).toFixed(0)} kg`,
+        location: (entry.profiles as any)?.location || 'India',
+        avatar: (entry.profiles as any)?.avatar_url || '👤',
+        userId: entry.user_id
+      })) || [];
+
+      setTopVolunteers(leaderboard);
+
+      // Calculate user's rank if logged in
+      if (user) {
+        const { count } = await supabase
+          .from('user_stats')
+          .select('*', { count: 'exact', head: true })
+          .gt('points', (await supabase
+            .from('user_stats')
+            .select('points')
+            .eq('user_id', user.id)
+            .single()).data?.points || 0);
+        
+        setUserRank((count || 0) + 1);
+      }
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -106,7 +121,13 @@ const Leaderboard = () => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <div className="text-3xl">{volunteer.avatar}</div>
+                    <div className="text-3xl">
+                      {volunteer.avatar.startsWith('http') ? (
+                        <img src={volunteer.avatar} alt={volunteer.name} className="w-12 h-12 rounded-full" />
+                      ) : (
+                        <span>{volunteer.avatar}</span>
+                      )}
+                    </div>
                     <div>
                       <h4 className="font-bold text-[#014F86] text-lg">{volunteer.name}</h4>
                       <p className="text-sm text-gray-600">{volunteer.location}</p>
@@ -140,9 +161,11 @@ const Leaderboard = () => {
           <p className="text-sm text-gray-600 mb-3">
             Think you can make it to the top? Join more events to climb the leaderboard!
           </p>
-          <Badge className="bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2] text-[#014F86] border-0 px-4 py-2">
-            🏆 Your current rank: #47
-          </Badge>
+          {userRank && (
+            <Badge className="bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2] text-[#014F86] border-0 px-4 py-2">
+              🏆 Your current rank: #{userRank}
+            </Badge>
+          )}
         </div>
       </CardContent>
     </Card>

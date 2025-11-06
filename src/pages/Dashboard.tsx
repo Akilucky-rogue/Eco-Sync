@@ -68,10 +68,13 @@ const Dashboard = () => {
 
       if (eventsError) throw eventsError;
 
-      // Get recent activities from social posts
+      // Get recent activities from social posts with user profiles
       const { data: postsData, error: postsError } = await supabase
         .from('social_posts')
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(full_name, avatar_url)
+        `)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -88,7 +91,10 @@ const Dashboard = () => {
       setActivities(postsData?.map(post => ({
         id: post.id,
         type: post.type,
-        user: { name: 'User' }, // Would need to join with profiles
+        user: { 
+          name: (post.profiles as any)?.full_name || 'Anonymous User',
+          avatar: (post.profiles as any)?.avatar_url
+        },
         content: post.content,
         location: post.location,
         timestamp: new Date(post.created_at),

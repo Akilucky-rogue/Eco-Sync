@@ -12,10 +12,10 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Gamification from "./pages/Gamification";
 import Social from "./pages/Social";
-import NotFound from "./pages/NotFound";
 import EventManagement from "./pages/EventManagement";
 import Auth from "./pages/Auth";
 import WasteClassification from "./pages/WasteClassification";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,7 +44,7 @@ const App = () => (
             <Route path="/social" element={<Layout><Social /></Layout>} />
             <Route path="/waste-classifier" element={<Layout><WasteClassification /></Layout>} />
             <Route path="/admin" element={<Layout><Admin /></Layout>} />
-            <Route path="*" element={<Layout><NotFound /></Layout>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

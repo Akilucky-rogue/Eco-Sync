@@ -1,58 +1,81 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, Award } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 const UpcomingEvents = () => {
-  const upcomingEvents = [
-    {
-      id: 1,
-      name: "Mumbai Marine Drive Cleanup",
-      date: "Dec 15, 2024",
-      time: "6:00 AM",
-      location: "Marine Drive, Mumbai",
-      volunteers: 85,
-      maxVolunteers: 120,
-      priority: "High",
-      category: "Beach",
-      image: "🏖️"
-    },
-    {
-      id: 2,
-      name: "Goa Beach Restoration",
-      date: "Dec 22, 2024",
-      time: "7:00 AM",
-      location: "Baga Beach, Goa",
-      volunteers: 67,
-      maxVolunteers: 100,
-      priority: "Medium",
-      category: "Coastal",
-      image: "🌊"
-    },
-    {
-      id: 3,
-      name: "Chennai Marina Beach Care",
-      date: "Dec 29, 2024",
-      time: "5:30 AM",
-      location: "Marina Beach, Chennai",
-      volunteers: 52,
-      maxVolunteers: 80,
-      priority: "Low",
-      category: "Marine",
-      image: "🐠"
-    }
-  ];
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Low': return 'bg-green-100 text-green-800 border-green-200';
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('status', 'upcoming')
+        .gte('date', new Date().toISOString().split('T')[0])
+        .order('date', { ascending: true })
+        .limit(3);
+
+      if (error) throw error;
+      setUpcomingEvents(data || []);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'hard': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'easy': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'beach': return '🏖️';
+      case 'coastal': return '🌊';
+      case 'river': return '🏞️';
+      case 'marine': return '🐠';
+      default: return '🌍';
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="shadow-xl border-0 overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2]">
+          <CardTitle className="text-[#014F86]">Loading Events...</CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (upcomingEvents.length === 0) {
+    return (
+      <Card className="shadow-xl border-0 overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2]">
+          <CardTitle className="text-[#014F86]">No Upcoming Events</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <p className="text-gray-600">Check back soon for new cleanup events!</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-xl border-0 overflow-hidden">
@@ -73,18 +96,18 @@ const UpcomingEvents = () => {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="text-4xl">{event.image}</div>
+                    <div className="text-4xl">{getCategoryIcon(event.category)}</div>
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <h4 className="font-bold text-[#014F86] text-lg group-hover:text-[#0066A3] transition-colors">{event.name}</h4>
-                        <Badge className={`${getPriorityColor(event.priority)} border font-medium`}>
-                          {event.priority}
+                        <Badge className={`${getDifficultyColor(event.difficulty)} border font-medium`}>
+                          {event.difficulty}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-6 text-sm text-gray-600">
                         <span className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full">
                           <Calendar className="h-4 w-4 text-blue-600" />
-                          {event.date} at {event.time}
+                          {format(new Date(event.date), 'MMM dd, yyyy')} at {event.time}
                         </span>
                         <span className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full">
                           <MapPin className="h-4 w-4 text-green-600" />
@@ -92,7 +115,7 @@ const UpcomingEvents = () => {
                         </span>
                         <span className="flex items-center gap-2 bg-purple-50 px-3 py-1 rounded-full">
                           <Users className="h-4 w-4 text-purple-600" />
-                          {event.volunteers}/{event.maxVolunteers}
+                          {event.current_volunteers}/{event.max_volunteers}
                         </span>
                       </div>
                     </div>
@@ -109,12 +132,12 @@ const UpcomingEvents = () => {
                 <div className="mt-4">
                   <div className="flex justify-between text-sm text-gray-600 mb-2">
                     <span>Volunteer Progress</span>
-                    <span>{Math.round((event.volunteers / event.maxVolunteers) * 100)}% Full</span>
+                    <span>{Math.round((event.current_volunteers / event.max_volunteers) * 100)}% Full</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-gradient-to-r from-[#FF6F61] to-[#E55B50] h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(event.volunteers / event.maxVolunteers) * 100}%` }}
+                      style={{ width: `${(event.current_volunteers / event.max_volunteers) * 100}%` }}
                     ></div>
                   </div>
                 </div>
