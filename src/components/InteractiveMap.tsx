@@ -40,9 +40,66 @@ const InteractiveMap = () => {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<EventLocation[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
     loadEvents();
+
+    // Subscribe to real-time updates for events
+    const channel = supabase
+      .channel('events-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events',
+          filter: 'status=eq.upcoming'
+        },
+        (payload) => {
+          console.log('Event updated:', payload);
+          setLastUpdate(new Date());
+          
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const updatedEvent = payload.new as any;
+            
+            // Extract city and add coordinates
+            const cityMatch = Object.keys(CITY_COORDINATES).find(city => 
+              updatedEvent.location.includes(city)
+            );
+            
+            if (cityMatch) {
+              const eventWithCoords = {
+                ...updatedEvent,
+                coordinates: CITY_COORDINATES[cityMatch]
+              };
+
+              setEvents(prev => {
+                const existingIndex = prev.findIndex(e => e.id === updatedEvent.id);
+                if (existingIndex >= 0) {
+                  // Update existing event
+                  const newEvents = [...prev];
+                  newEvents[existingIndex] = eventWithCoords;
+                  console.log('Updated event in map:', eventWithCoords);
+                  return newEvents;
+                } else {
+                  // Add new event
+                  console.log('Added new event to map:', eventWithCoords);
+                  return [...prev, eventWithCoords];
+                }
+              });
+            }
+          } else if (payload.eventType === 'DELETE') {
+            setEvents(prev => prev.filter(e => e.id !== payload.old.id));
+            console.log('Removed event from map:', payload.old.id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadEvents = async () => {
@@ -81,6 +138,9 @@ const InteractiveMap = () => {
     }
   };
 
+  // Store markers in a ref to update them
+  const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+
   useEffect(() => {
     if (!mapContainer.current || events.length === 0) {
       if (events.length === 0) {
@@ -89,50 +149,59 @@ const InteractiveMap = () => {
       return;
     }
 
-    console.log('Initializing map with', events.length, 'events');
+    console.log('Initializing/updating map with', events.length, 'events');
 
     const initializeMap = async () => {
       try {
-        setLoading(true);
-        console.log('Fetching Mapbox token...');
-        
-        // Fetch Mapbox token from edge function with timeout
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Token fetch timeout')), 10000)
-        );
-        
-        const fetchPromise = supabase.functions.invoke('mapbox-token');
-        
-        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-        
-        if (error) {
-          console.error('Token fetch error:', error);
-          throw error;
+        // Only initialize map once
+        if (!map.current) {
+          setLoading(true);
+          console.log('Fetching Mapbox token...');
+          
+          // Fetch Mapbox token from edge function with timeout
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Token fetch timeout')), 10000)
+          );
+          
+          const fetchPromise = supabase.functions.invoke('mapbox-token');
+          
+          const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+          
+          if (error) {
+            console.error('Token fetch error:', error);
+            throw error;
+          }
+          if (!data?.token) {
+            console.error('No token received:', data);
+            throw new Error('No Mapbox token received');
+          }
+
+          console.log('Token received, initializing map...');
+          mapboxgl.accessToken = data.token;
+
+          // Initialize map centered on India
+          map.current = new mapboxgl.Map({
+            container: mapContainer.current!,
+            style: 'mapbox://styles/mapbox/light-v11',
+            center: [78.9629, 20.5937], // Center of India
+            zoom: 4.5,
+            projection: 'mercator' as any,
+          });
+
+          // Add navigation controls
+          map.current.addControl(
+            new mapboxgl.NavigationControl({
+              visualizePitch: true,
+            }),
+            'top-right'
+          );
+
+          setLoading(false);
         }
-        if (!data?.token) {
-          console.error('No token received:', data);
-          throw new Error('No Mapbox token received');
-        }
 
-        console.log('Token received, initializing map...');
-        mapboxgl.accessToken = data.token;
-
-        // Initialize map centered on India
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current!,
-          style: 'mapbox://styles/mapbox/light-v11',
-          center: [78.9629, 20.5937], // Center of India
-          zoom: 4.5,
-          projection: 'mercator' as any,
-        });
-
-        // Add navigation controls
-        map.current.addControl(
-          new mapboxgl.NavigationControl({
-            visualizePitch: true,
-          }),
-          'top-right'
-        );
+        // Clear existing markers
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current.clear();
 
         // Group events by location
         const locationGroups = events.reduce((acc, event) => {
@@ -192,7 +261,7 @@ const InteractiveMap = () => {
                   <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
                     <span style="background: #FF6F61; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${event.category}</span>
                     <span style="background: #014F86; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${event.points_reward} pts</span>
-                    <span style="color: #666; font-size: 11px;">${event.current_volunteers}/${event.max_volunteers} volunteers</span>
+                    <span style="color: #666; font-size: 11px;">🟢 ${event.current_volunteers}/${event.max_volunteers} volunteers</span>
                   </div>
                 </div>
               `).join('')}
@@ -208,13 +277,15 @@ const InteractiveMap = () => {
             maxWidth: '320px'
           }).setDOMContent(popupContent);
 
-          new mapboxgl.Marker(el)
+          const marker = new mapboxgl.Marker(el)
             .setLngLat([lng, lat])
             .setPopup(popup)
             .addTo(map.current!);
+
+          markersRef.current.set(key, marker);
         });
 
-        setLoading(false);
+        console.log('Updated map with', markersRef.current.size, 'markers');
       } catch (error: any) {
         console.error('Error initializing map:', error);
         setError(error.message);
@@ -223,12 +294,16 @@ const InteractiveMap = () => {
     };
 
     initializeMap();
+  }, [events]);
 
-    // Cleanup
+  // Cleanup map on unmount
+  useEffect(() => {
     return () => {
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current.clear();
       map.current?.remove();
     };
-  }, [events]);
+  }, []);
 
   return (
     <Card className="overflow-hidden shadow-xl border-0">
@@ -238,7 +313,20 @@ const InteractiveMap = () => {
             <MapPin className="h-6 w-6" />
           </div>
           Coastal Cleanup Locations
-          <Badge className="bg-white/20 text-white border-white/30">Live Map</Badge>
+          <div className="flex gap-2 ml-auto">
+            <Badge className="bg-white/20 text-white border-white/30 flex items-center gap-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Live Updates
+            </Badge>
+            {lastUpdate && (
+              <Badge variant="outline" className="bg-white/10 text-white border-white/30 text-xs">
+                Updated {new Date(lastUpdate).toLocaleTimeString()}
+              </Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
