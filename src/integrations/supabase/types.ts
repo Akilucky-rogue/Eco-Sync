@@ -14,7 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          created_at: string
+          description: string
+          earned: boolean
+          earned_at: string | null
+          id: string
+          name: string
+          progress: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          earned?: boolean
+          earned_at?: string | null
+          id?: string
+          name: string
+          progress?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          earned?: boolean
+          earned_at?: string | null
+          id?: string
+          name?: string
+          progress?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      badges: {
+        Row: {
+          earned_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          earned_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          earned_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleanups: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          location: string
+          name: string
+          points_earned: number
+          user_id: string
+          waste_collected: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          location: string
+          name: string
+          points_earned: number
+          user_id: string
+          waste_collected: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string
+          name?: string
+          points_earned?: number
+          user_id?: string
+          waste_collected?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleanups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          location: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id: string
+          location?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_stats: {
+        Row: {
+          cleanups_count: number
+          created_at: string
+          environmental_score: number
+          id: string
+          level: number
+          next_level_points: number
+          points: number
+          quizzes_taken: number
+          updated_at: string
+          user_id: string
+          volunteers_helped: number
+          waste_collected: number
+        }
+        Insert: {
+          cleanups_count?: number
+          created_at?: string
+          environmental_score?: number
+          id?: string
+          level?: number
+          next_level_points?: number
+          points?: number
+          quizzes_taken?: number
+          updated_at?: string
+          user_id: string
+          volunteers_helped?: number
+          waste_collected?: number
+        }
+        Update: {
+          cleanups_count?: number
+          created_at?: string
+          environmental_score?: number
+          id?: string
+          level?: number
+          next_level_points?: number
+          points?: number
+          quizzes_taken?: number
+          updated_at?: string
+          user_id?: string
+          volunteers_helped?: number
+          waste_collected?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
