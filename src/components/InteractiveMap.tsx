@@ -1,9 +1,204 @@
-
+import { useEffect, useRef, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Award } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface EventLocation {
+  id: string;
+  name: string;
+  location: string;
+  coordinates?: [number, number];
+  category: string;
+  difficulty: string;
+  points_reward: number;
+  current_volunteers: number;
+  max_volunteers: number;
+}
+
+// Approximate coordinates for major Indian coastal cities
+const CITY_COORDINATES: Record<string, [number, number]> = {
+  "Mumbai": [72.8777, 19.0760],
+  "Goa": [73.8278, 15.2993],
+  "Chennai": [80.2707, 13.0827],
+  "Kochi": [76.2673, 9.9312],
+  "Visakhapatnam": [83.2185, 17.6868],
+  "Pondicherry": [79.8083, 11.9416],
+  "Kolkata": [88.3639, 22.5726],
+  "Mangalore": [74.8560, 12.9141],
+  "Puri": [85.8315, 19.8135],
+  "Diu": [70.9870, 20.7144],
+  "Kovalam": [76.9797, 8.4004],
+  "Andaman": [92.6586, 11.6234],
+};
 
 const InteractiveMap = () => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<EventLocation[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('id, name, location, category, difficulty, points_reward, current_volunteers, max_volunteers')
+        .eq('status', 'upcoming')
+        .limit(20);
+
+      if (error) throw error;
+
+      // Extract city names and add coordinates
+      const eventsWithCoords = data?.map(event => {
+        const cityMatch = Object.keys(CITY_COORDINATES).find(city => 
+          event.location.includes(city)
+        );
+        return {
+          ...event,
+          coordinates: cityMatch ? CITY_COORDINATES[cityMatch] : undefined
+        };
+      }).filter(event => event.coordinates) as EventLocation[];
+
+      setEvents(eventsWithCoords || []);
+    } catch (error: any) {
+      console.error('Error loading events:', error);
+      setError(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (!mapContainer.current || events.length === 0) return;
+
+    const initializeMap = async () => {
+      try {
+        // Fetch Mapbox token from edge function
+        const { data, error } = await supabase.functions.invoke('mapbox-token');
+        
+        if (error) throw error;
+        if (!data?.token) throw new Error('No Mapbox token received');
+
+        mapboxgl.accessToken = data.token;
+
+        // Initialize map centered on India
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [78.9629, 20.5937], // Center of India
+          zoom: 4.5,
+          projection: 'mercator' as any,
+        });
+
+        // Add navigation controls
+        map.current.addControl(
+          new mapboxgl.NavigationControl({
+            visualizePitch: true,
+          }),
+          'top-right'
+        );
+
+        // Group events by location
+        const locationGroups = events.reduce((acc, event) => {
+          const key = event.coordinates!.join(',');
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(event);
+          return acc;
+        }, {} as Record<string, EventLocation[]>);
+
+        // Add markers for each location
+        Object.entries(locationGroups).forEach(([key, locationEvents]) => {
+          const [lng, lat] = key.split(',').map(Number);
+          
+          // Create custom marker
+          const el = document.createElement('div');
+          el.className = 'custom-marker';
+          el.style.cssText = `
+            background: linear-gradient(135deg, #FF6F61, #E55B50);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            transition: transform 0.2s;
+          `;
+          el.textContent = locationEvents.length.toString();
+          
+          el.addEventListener('mouseenter', () => {
+            el.style.transform = 'scale(1.2)';
+          });
+          
+          el.addEventListener('mouseleave', () => {
+            el.style.transform = 'scale(1)';
+          });
+
+          // Create popup content
+          const popupContent = document.createElement('div');
+          popupContent.style.cssText = 'max-width: 300px;';
+          
+          const cityName = locationEvents[0].location.split(',').slice(-2).join(',').trim();
+          popupContent.innerHTML = `
+            <div style="padding: 8px;">
+              <h3 style="margin: 0 0 12px 0; color: #014F86; font-size: 16px; font-weight: 600;">${cityName}</h3>
+              <div style="color: #666; font-size: 13px; margin-bottom: 8px;">${locationEvents.length} active event${locationEvents.length > 1 ? 's' : ''}</div>
+              ${locationEvents.slice(0, 3).map(event => `
+                <div style="padding: 8px; margin: 4px 0; background: #f5f5f5; border-radius: 6px;">
+                  <div style="font-weight: 600; color: #014F86; margin-bottom: 4px;">${event.name}</div>
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                    <span style="background: #FF6F61; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${event.category}</span>
+                    <span style="background: #014F86; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${event.points_reward} pts</span>
+                    <span style="color: #666; font-size: 11px;">${event.current_volunteers}/${event.max_volunteers} volunteers</span>
+                  </div>
+                </div>
+              `).join('')}
+              ${locationEvents.length > 3 ? `<div style="color: #666; font-size: 12px; margin-top: 8px;">+${locationEvents.length - 3} more event${locationEvents.length - 3 > 1 ? 's' : ''}</div>` : ''}
+            </div>
+          `;
+
+          // Create and add popup
+          const popup = new mapboxgl.Popup({
+            offset: 25,
+            closeButton: true,
+            closeOnClick: true,
+            maxWidth: '320px'
+          }).setDOMContent(popupContent);
+
+          new mapboxgl.Marker(el)
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(map.current!);
+        });
+
+        setLoading(false);
+      } catch (error: any) {
+        console.error('Error initializing map:', error);
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+
+    initializeMap();
+
+    // Cleanup
+    return () => {
+      map.current?.remove();
+    };
+  }, [events]);
+
   return (
     <Card className="overflow-hidden shadow-xl border-0">
       <CardHeader className="bg-gradient-to-r from-[#014F86] to-[#0066A3] text-white">
@@ -12,75 +207,28 @@ const InteractiveMap = () => {
             <MapPin className="h-6 w-6" />
           </div>
           Coastal Cleanup Locations
-          <Badge className="bg-white/20 text-white border-white/30">Live Updates</Badge>
+          <Badge className="bg-white/20 text-white border-white/30">Live Map</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="h-80 bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
-          
-          {/* Enhanced Map Pins */}
-          <div className="absolute top-1/4 left-1/3 group">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white">
-                <MapPin className="h-5 w-5 text-white" />
-              </div>
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                <div className="font-semibold text-[#014F86]">Mumbai</div>
-                <div className="text-sm text-gray-600">4 Active Events</div>
+        <div className="h-96 relative">
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#014F86] mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Loading map...</p>
               </div>
             </div>
-            <div className="text-xs text-center mt-2 font-medium bg-white/80 px-2 py-1 rounded-full">Mumbai</div>
-          </div>
-          
-          <div className="absolute top-1/2 left-1/4 group">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white">
-                <MapPin className="h-5 w-5 text-white" />
-              </div>
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                <div className="font-semibold text-[#014F86]">Goa</div>
-                <div className="text-sm text-gray-600">3 Active Events</div>
+          ) : error ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100">
+              <div className="text-center bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border">
+                <p className="text-[#014F86] font-semibold mb-2">Unable to load map</p>
+                <p className="text-sm text-gray-600">{error}</p>
               </div>
             </div>
-            <div className="text-xs text-center mt-2 font-medium bg-white/80 px-2 py-1 rounded-full">Goa</div>
-          </div>
-          
-          <div className="absolute top-1/3 right-1/4 group">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white">
-                <MapPin className="h-5 w-5 text-white" />
-              </div>
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                <div className="font-semibold text-[#014F86]">Chennai</div>
-                <div className="text-sm text-gray-600">2 Active Events</div>
-              </div>
-            </div>
-            <div className="text-xs text-center mt-2 font-medium bg-white/80 px-2 py-1 rounded-full">Chennai</div>
-          </div>
-          
-          <div className="absolute bottom-1/3 left-1/2 group">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white">
-                <MapPin className="h-5 w-5 text-white" />
-              </div>
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                <div className="font-semibold text-[#014F86]">Kochi</div>
-                <div className="text-sm text-gray-600">1 Active Event</div>
-              </div>
-            </div>
-            <div className="text-xs text-center mt-2 font-medium bg-white/80 px-2 py-1 rounded-full">Kochi</div>
-          </div>
-          
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border">
-              <div className="flex items-center gap-2 justify-center mb-2">
-                <Award className="h-6 w-6 text-[#FF6F61]" />
-                <p className="text-[#014F86] font-bold text-lg">Interactive Map</p>
-              </div>
-              <p className="text-sm text-gray-600">Click on pins to view cleanup details</p>
-            </div>
-          </div>
+          ) : (
+            <div ref={mapContainer} className="absolute inset-0" />
+          )}
         </div>
       </CardContent>
     </Card>
