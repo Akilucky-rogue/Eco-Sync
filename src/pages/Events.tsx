@@ -5,6 +5,7 @@ import { Calendar, Trophy } from "lucide-react";
 import EventCard from "../components/EventCard";
 import PastEventCard from "../components/PastEventCard";
 import EventsHeader from "../components/EventsHeader";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const Events = () => {
   const [joinedEvents, setJoinedEvents] = useState<number[]>([]);
@@ -114,10 +115,11 @@ const Events = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <EventsHeader />
+    <ErrorBoundary>
+      <div className="container mx-auto p-4">
+        <EventsHeader />
 
-      <Tabs defaultValue="upcoming" className="space-y-8">
+        <Tabs defaultValue="upcoming" className="space-y-8">
         <TabsList className="grid w-full grid-cols-2 bg-white shadow-lg rounded-xl border-0 p-1 h-14">
           <TabsTrigger 
             value="upcoming" 
@@ -153,6 +155,7 @@ const Events = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </ErrorBoundary>
   );
 };
 

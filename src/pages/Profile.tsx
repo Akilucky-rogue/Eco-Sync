@@ -7,12 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Award, Calendar, TrendingUp, Users, Brain, Star, Edit, Settings, Loader2 } from "lucide-react";
+import { Award, Calendar, TrendingUp, Users, Brain, Star, Edit, Settings } from "lucide-react";
 import EnvironmentalQuiz from "@/components/EnvironmentalQuiz";
 import UserAvatar from "@/components/UserAvatar";
 import StatCard from "@/components/StatCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import EditProfileDialog from "@/components/EditProfileDialog";
+import PageLoader from "@/components/PageLoader";
+import ErrorMessage from "@/components/ErrorMessage";
 import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
@@ -109,16 +111,20 @@ const Profile = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="container mx-auto p-4 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      <div className="container mx-auto p-4">
+        <PageLoader text="Loading your profile..." />
       </div>
     );
   }
 
   if (!profile || !stats) {
     return (
-      <div className="container mx-auto p-4 text-center">
-        <p>Profile not found</p>
+      <div className="container mx-auto p-4">
+        <ErrorMessage 
+          title="Profile not found"
+          message="Unable to load your profile data. Please try again."
+          onRetry={loadProfileData}
+        />
       </div>
     );
   }

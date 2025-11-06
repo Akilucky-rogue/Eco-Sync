@@ -6,6 +6,7 @@ import { TrendingUp, Users, Award, Recycle, Calendar, MapPin } from "lucide-reac
 import StatCard from "@/components/StatCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import QuickActions from "@/components/QuickActions";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const Dashboard = () => {
   const overallStats = {
@@ -50,7 +51,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <ErrorBoundary>
+      <div className="container mx-auto p-4 space-y-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#014F86] mb-2">Impact Dashboard</h1>
         <p className="text-gray-600">Track our collective environmental impact across India's coastline and community growth</p>
@@ -242,6 +244,7 @@ const Dashboard = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </ErrorBoundary>
   );
 };
 

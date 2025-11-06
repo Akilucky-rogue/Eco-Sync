@@ -6,6 +6,8 @@ import { Plus, Calendar, QrCode, Bell } from "lucide-react";
 import EventCreationForm from "../components/EventCreationForm";
 import EventCheckIn from "../components/EventCheckIn";
 import EventStatusUpdates from "../components/EventStatusUpdates";
+import ErrorBoundary from "../components/ErrorBoundary";
+import { toast } from "sonner";
 
 const EventManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -34,15 +36,17 @@ const EventManagement = () => {
 
   const handleEventCreated = () => {
     setShowCreateForm(false);
-    console.log("Event created successfully");
+    toast.success("Event created successfully!");
   };
 
   const handleCheckIn = (eventId: string) => {
+    toast.success("Successfully checked in to event!");
     console.log("Checked in to event:", eventId);
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <ErrorBoundary>
+      <div className="container mx-auto p-4 space-y-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#014F86] mb-2">Event Management</h1>
         <p className="text-gray-600">Create, manage, and participate in marine conservation events</p>
@@ -128,6 +132,7 @@ const EventManagement = () => {
         </Tabs>
       )}
     </div>
+    </ErrorBoundary>
   );
 };
 

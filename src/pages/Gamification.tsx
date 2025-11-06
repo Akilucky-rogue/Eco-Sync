@@ -5,6 +5,7 @@ import { Trophy, Flame, Gift, Award } from "lucide-react";
 import AchievementBadge from "../components/AchievementBadge";
 import StreakCounter from "../components/StreakCounter";
 import RewardSystem from "../components/RewardSystem";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const Gamification = () => {
   const [userStats] = useState({
@@ -127,7 +128,8 @@ const Gamification = () => {
   ];
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <ErrorBoundary>
+      <div className="container mx-auto p-4 space-y-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#014F86] mb-2">Gamification Hub</h1>
         <p className="text-gray-600">Track your achievements, streaks, and unlock rewards for your conservation efforts</p>
@@ -193,6 +195,7 @@ const Gamification = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </ErrorBoundary>
   );
 };
 
