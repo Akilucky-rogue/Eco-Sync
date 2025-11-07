@@ -562,10 +562,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- **Website**: [Your Website]
+- **Website**: [https://tinyurl.com/Ecosanjivani]
 - **Email**: contact@eco-sanjivani.org
-- **GitHub**: [@your-username](https://github.com/your-username)
-- **Discord**: [Join our community](https://discord.gg/your-invite)
+- **GitHub**: [@Akilucky-rogue](https://github.com/Akilucky-rogue)
 
 ---
 
