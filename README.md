@@ -96,11 +96,12 @@ Real-time event coordination with live volunteer tracking, AI-powered waste clas
 - **Testimonials**: Success stories and community highlights
 
 ### 🗺️ **Interactive Map**
+- **Custom India Map**: Beautifully illustrated coastal map of India
 - **Real-time Updates**: Live volunteer counts and event status changes
-- **Geographic Markers**: Visual event locations with detailed popups
-- **City Coordinates**: Coverage across major Indian coastal cities
-- **Live Indicator**: Pulsing badge showing real-time synchronization
-- **Timestamp Tracking**: Last update time display
+- **Interactive Markers**: Click markers to view event details in popup modals
+- **City Coordinates**: Coverage across 15+ major Indian coastal cities
+- **Live Indicator**: Pulsing badge showing real-time database synchronization
+- **No External Dependencies**: Self-contained mapping solution with zero API costs
 
 ---
 
@@ -119,8 +120,8 @@ Real-time event coordination with live volunteer tracking, AI-powered waste clas
 | **Storage** | Supabase Storage | Avatar and photo management |
 | **Functions** | Deno Edge Functions | Serverless backend logic |
 | **Real-time** | Supabase Realtime | Live data synchronization |
-| **Maps** | Mapbox GL JS | Interactive mapping |
-| **AI** | Lovable AI (Gemini) | Waste classification & analysis |
+| **Maps** | Custom Illustrated Map | Self-contained interactive map |
+| **AI** | Lovable AI (Gemini 2.5) | Computer vision & waste analysis |
 | **State** | React Query | Efficient data fetching |
 | **Forms** | React Hook Form + Zod | Validated form handling |
 | **Charts** | Recharts | Data visualization |
@@ -151,11 +152,14 @@ Real-time event coordination with live volunteer tracking, AI-powered waste clas
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────┐
-│              External Services                           │
-│  ┌────────────────────┬──────────────────────────────┐  │
-│  │   Mapbox API       │    Lovable AI (Gemini)      │  │
-│  │   (Maps & Geocoding) │    (Waste Classification) │  │
-│  └────────────────────┴──────────────────────────────┘  │
+│              External AI Service                         │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │   Lovable AI Gateway (Gemini 2.5 Flash)           │ │
+│  │   - Waste Type Classification                      │ │
+│  │   - Volume & Weight Estimation                     │ │
+│  │   - Environmental Impact Analysis                  │ │
+│  │   - Disposal Recommendations                       │ │
+│  └────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -197,11 +201,13 @@ eco-sanjivani/
 │   └── main.tsx                # Entry point
 ├── supabase/
 │   ├── functions/              # Edge Functions
-│   │   ├── mapbox-token/       # Secure token provider
+│   │   ├── mapbox-token/       # Token provider (legacy)
 │   │   └── classify-waste/     # AI waste classification
 │   ├── migrations/             # Database migrations
 │   └── config.toml             # Supabase config
-├── public/                      # Static assets
+├── src/assets/                 # Static assets
+│   └── india-coastal-map.jpg   # Custom India map illustration
+├── public/                      # Static files
 ├── package.json
 ├── tsconfig.json
 ├── tailwind.config.ts
@@ -545,11 +551,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Lovable**: For the amazing development platform
-- **Supabase**: For the backend infrastructure
-- **Mapbox**: For interactive mapping capabilities
+- **Lovable**: For the powerful development platform and AI gateway
+- **Google Gemini**: For advanced AI capabilities powering waste classification
+- **Supabase**: For the robust backend infrastructure
 - **shadcn/ui**: For the beautiful component library
-- **Community**: All volunteers and contributors
+- **Radix UI**: For accessible UI primitives
+- **Community**: All volunteers and contributors making marine conservation possible
 
 ---
 
