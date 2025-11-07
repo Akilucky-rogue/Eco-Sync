@@ -2054,5 +2054,3 @@ This documentation covers the complete architecture of Eco-Sanjivani, including:
 ✅ **Security** - Authentication, RLS, and edge function security  
 ✅ **Map System** - Interactive map implementation  
 ✅ **User Journeys** - Complete user experience flows  
-
-For any questions or clarifications about specific components or flows, refer to the relevant section above or check the source code files referenced throughout this documentation.
