@@ -42,7 +42,16 @@ const EventCard = ({ event, isJoined, onJoin }: EventCardProps) => {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
         <div className="relative flex justify-between items-start">
           <div className="flex items-center gap-4">
-            <div className="text-5xl">{event.image}</div>
+            <div className="w-20 h-20 rounded-lg overflow-hidden shadow-md border-2 border-white/50">
+              <img 
+                src={event.image} 
+                alt={event.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1519046904884-53103b34b206';
+                }}
+              />
+            </div>
             <div>
               <CardTitle className="text-[#014F86] mb-3 text-xl">{event.name}</CardTitle>
               <div className="flex flex-wrap gap-2">
