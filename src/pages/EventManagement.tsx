@@ -20,6 +20,7 @@ interface Event {
   time: string;
   status: string;
   points_reward: number;
+  created_by: string;
 }
 
 const EventManagement = () => {
@@ -243,18 +244,38 @@ const EventManagement = () => {
             </TabsContent>
 
             <TabsContent value="manage" className="space-y-6">
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-[#FF6F61] mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-[#014F86] mb-2">Event Management</h3>
-                <p className="text-gray-600 mb-4">Manage your created events and view analytics</p>
-                <Button 
-                  onClick={() => setShowCreateForm(true)}
-                  className="bg-[#FF6F61] hover:bg-[#FF6F61]/90"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Event
-                </Button>
-              </div>
+              {events.filter(e => e.created_by === user?.id).length === 0 ? (
+                <div className="text-center py-12">
+                  <Calendar className="h-16 w-16 text-[#FF6F61] mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-[#014F86] mb-2">No Events Created Yet</h3>
+                  <p className="text-gray-600 mb-4">Create your first event to get started</p>
+                  <Button 
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-[#FF6F61] hover:bg-[#FF6F61]/90"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Event
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {events.filter(e => e.created_by === user?.id).map((event) => (
+                    <EventCheckIn
+                      key={event.id}
+                      event={{
+                        id: event.id,
+                        title: event.name,
+                        location: event.location,
+                        date: event.date,
+                        time: event.time,
+                        status: event.status as 'upcoming' | 'ongoing' | 'completed',
+                        points: event.points_reward
+                      }}
+                      onCheckIn={handleCheckIn}
+                    />
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         )}
