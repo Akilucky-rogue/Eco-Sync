@@ -196,7 +196,7 @@ const SocialFeed = () => {
             className="pl-10"
           />
         </div>
-        <Button className="bg-[#FF6F61] hover:bg-[#FF6F61]/90">
+        <Button className="bg-brand-accent hover:bg-brand-accent/90 text-white">
           <Camera className="h-4 w-4 mr-2" />
           Share Photo
         </Button>
