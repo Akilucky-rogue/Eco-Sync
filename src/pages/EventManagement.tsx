@@ -5,22 +5,39 @@ import { Plus, Calendar, QrCode, Bell } from "lucide-react";
 import EventCreationForm from "../components/EventCreationForm";
 import EventCheckIn from "../components/EventCheckIn";
 import EventStatusUpdates from "../components/EventStatusUpdates";
+import ManageEventCard from "../components/ManageEventCard";
+import EventEditDialog from "../components/EventEditDialog";
 import ErrorBoundary from "../components/ErrorBoundary";
 import PageLoader from "../components/PageLoader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Event {
   id: string;
   name: string;
+  description: string;
   location: string;
   date: string;
   time: string;
   status: string;
   points_reward: number;
   created_by: string;
+  category: string;
+  difficulty: string;
+  current_volunteers: number;
+  max_volunteers: number;
 }
 
 const EventManagement = () => {
@@ -29,6 +46,8 @@ const EventManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -137,6 +156,54 @@ const EventManagement = () => {
       toast.success("Successfully checked in to event!");
     } catch (error: any) {
       toast.error(error.message || "Failed to check in");
+    }
+  };
+
+  const handleEditEvent = async (eventId: string, eventData: any) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({
+          name: eventData.name,
+          description: eventData.description,
+          location: eventData.location,
+          date: eventData.date,
+          time: eventData.time,
+          category: eventData.category,
+          difficulty: eventData.difficulty,
+          max_volunteers: eventData.max_volunteers,
+        })
+        .eq('id', eventId)
+        .eq('created_by', user.id);
+
+      if (error) throw error;
+
+      toast.success("Event updated successfully!");
+      loadEvents();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update event");
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!user || !deletingEventId) return;
+
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', deletingEventId)
+        .eq('created_by', user.id);
+
+      if (error) throw error;
+
+      toast.success("Event deleted successfully!");
+      setDeletingEventId(null);
+      loadEvents();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete event");
     }
   };
 
@@ -260,18 +327,11 @@ const EventManagement = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {events.filter(e => e.created_by === user?.id).map((event) => (
-                    <EventCheckIn
+                    <ManageEventCard
                       key={event.id}
-                      event={{
-                        id: event.id,
-                        title: event.name,
-                        location: event.location,
-                        date: event.date,
-                        time: event.time,
-                        status: event.status as 'upcoming' | 'ongoing' | 'completed',
-                        points: event.points_reward
-                      }}
-                      onCheckIn={handleCheckIn}
+                      event={event}
+                      onEdit={() => setEditingEvent(event)}
+                      onDelete={() => setDeletingEventId(event.id)}
                     />
                   ))}
                 </div>
@@ -279,6 +339,33 @@ const EventManagement = () => {
             </TabsContent>
           </Tabs>
         )}
+
+        {editingEvent && (
+          <EventEditDialog
+            event={editingEvent}
+            open={!!editingEvent}
+            onOpenChange={(open) => !open && setEditingEvent(null)}
+            onSave={handleEditEvent}
+          />
+        )}
+
+        <AlertDialog open={!!deletingEventId} onOpenChange={(open) => !open && setDeletingEventId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Event</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this event? This action cannot be undone.
+                All participants will be notified of the cancellation.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </ErrorBoundary>
   );
