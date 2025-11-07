@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MapPin, Loader2, List, RefreshCw, Navigation } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import indiaMap from "@/assets/india-coastal-map.jpg";
 
 interface EventLocation {
   id: string;
   name: string;
   location: string;
-  coordinates?: [number, number];
+  coordinates?: { x: number; y: number };
   category: string;
   difficulty: string;
   points_reward: number;
@@ -19,48 +17,28 @@ interface EventLocation {
   max_volunteers: number;
 }
 
-// Approximate coordinates for major Indian coastal cities
-const CITY_COORDINATES: Record<string, [number, number]> = {
-  "Mumbai": [72.8777, 19.0760],
-  "Goa": [73.8278, 15.2993],
-  "Chennai": [80.2707, 13.0827],
-  "Kochi": [76.2673, 9.9312],
-  "Visakhapatnam": [83.2185, 17.6868],
-  "Pondicherry": [79.8083, 11.9416],
-  "Kolkata": [88.3639, 22.5726],
-  "Mangalore": [74.8560, 12.9141],
-  "Puri": [85.8315, 19.8135],
-  "Diu": [70.9870, 20.7144],
-  "Kovalam": [76.9797, 8.4004],
-  "Andaman": [92.6586, 11.6234],
+// Approximate pixel positions for cities on a 1920x1080 map (adjust based on actual image)
+const CITY_POSITIONS: Record<string, { x: number; y: number }> = {
+  "Mumbai": { x: 35, y: 55 },
+  "Goa": { x: 32, y: 65 },
+  "Chennai": { x: 62, y: 72 },
+  "Kochi": { x: 48, y: 78 },
+  "Visakhapatnam": { x: 68, y: 60 },
+  "Pondicherry": { x: 64, y: 74 },
+  "Kolkata": { x: 75, y: 48 },
+  "Mangalore": { x: 44, y: 72 },
+  "Puri": { x: 70, y: 58 },
+  "Diu": { x: 28, y: 52 },
+  "Kovalam": { x: 48, y: 82 },
+  "Andaman": { x: 85, y: 70 },
+  "Digha": { x: 75, y: 52 }
 };
 
 const InteractiveMap = () => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<EventLocation[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [showFallback, setShowFallback] = useState(false);
-  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
-
-  // Get user location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
-          setUserLocation(coords);
-          console.log('User location:', coords);
-        },
-        (error) => {
-          console.log('Location access denied or unavailable:', error);
-        }
-      );
-    }
-  }, []);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -76,43 +54,9 @@ const InteractiveMap = () => {
           table: 'events',
           filter: 'status=eq.upcoming'
         },
-        (payload) => {
-          console.log('Event updated:', payload);
+        () => {
           setLastUpdate(new Date());
-          
-          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-            const updatedEvent = payload.new as any;
-            
-            // Extract city and add coordinates
-            const cityMatch = Object.keys(CITY_COORDINATES).find(city => 
-              updatedEvent.location.includes(city)
-            );
-            
-            if (cityMatch) {
-              const eventWithCoords = {
-                ...updatedEvent,
-                coordinates: CITY_COORDINATES[cityMatch]
-              };
-
-              setEvents(prev => {
-                const existingIndex = prev.findIndex(e => e.id === updatedEvent.id);
-                if (existingIndex >= 0) {
-                  // Update existing event
-                  const newEvents = [...prev];
-                  newEvents[existingIndex] = eventWithCoords;
-                  console.log('Updated event in map:', eventWithCoords);
-                  return newEvents;
-                } else {
-                  // Add new event
-                  console.log('Added new event to map:', eventWithCoords);
-                  return [...prev, eventWithCoords];
-                }
-              });
-            }
-          } else if (payload.eventType === 'DELETE') {
-            setEvents(prev => prev.filter(e => e.id !== payload.old.id));
-            console.log('Removed event from map:', payload.old.id);
-          }
+          loadEvents();
         }
       )
       .subscribe();
@@ -131,64 +75,63 @@ const InteractiveMap = () => {
         .eq('status', 'upcoming')
         .limit(20);
 
-      if (error) {
-        console.error('Error loading events:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Loaded events:', data?.length);
-
-      // Extract city names and add coordinates
-      const eventsWithCoords = data?.map(event => {
-        const cityMatch = Object.keys(CITY_COORDINATES).find(city => 
+      // Extract city names and add positions
+      const eventsWithPositions = data?.map(event => {
+        const cityMatch = Object.keys(CITY_POSITIONS).find(city => 
           event.location.includes(city)
         );
         return {
           ...event,
-          coordinates: cityMatch ? CITY_COORDINATES[cityMatch] : undefined
+          coordinates: cityMatch ? CITY_POSITIONS[cityMatch] : undefined
         };
-      }).filter(event => event.coordinates) as EventLocation[];
+      }).filter(event => event.coordinates);
 
-      console.log('Events with coordinates:', eventsWithCoords.length);
-      setEvents(eventsWithCoords || []);
+      setEvents(eventsWithPositions || []);
+      setLoading(false);
     } catch (error: any) {
       console.error('Error loading events:', error);
-      setError(error.message);
       setLoading(false);
     }
   };
 
-  // Store markers in a ref to update them
-  const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-
-  // Skip Mapbox and go straight to fallback view
+  // Skip Mapbox and go straight to custom map view
   useEffect(() => {
     if (events.length === 0) {
-      console.log('Waiting for events to load...');
       return;
     }
-
-    console.log('Displaying events in static map view with', events.length, 'events');
     setLoading(false);
-    setShowFallback(true);
   }, [events]);
 
-  // Cleanup map on unmount
-  useEffect(() => {
-    return () => {
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current.clear();
-      userMarkerRef.current?.remove();
-      map.current?.remove();
-    };
-  }, []);
+  // Group events by city
+  const eventsByCity = events.reduce((acc, event) => {
+    const city = Object.keys(CITY_POSITIONS).find(c => event.location.includes(c)) || 'Other';
+    if (!acc[city]) acc[city] = [];
+    acc[city].push(event);
+    return acc;
+  }, {} as Record<string, EventLocation[]>);
 
-  const retryMapLoad = () => {
-    setError(null);
-    setShowFallback(false);
-    setLoading(true);
-    loadEvents();
-  };
+  if (loading) {
+    return (
+      <Card className="overflow-hidden shadow-xl border-0">
+        <CardHeader className="bg-gradient-to-r from-[#014F86] to-[#0066A3] text-white">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <MapPin className="h-6 w-6" />
+            Loading Events Map...
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="h-96 flex items-center justify-center bg-gradient-to-br from-blue-50 to-teal-50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#014F86] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading event locations...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="overflow-hidden shadow-xl border-0">
@@ -204,7 +147,7 @@ const InteractiveMap = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              Live Updates
+              {events.length} Active Events
             </Badge>
             {lastUpdate && (
               <Badge variant="outline" className="bg-white/10 text-white border-white/30 text-xs">
@@ -215,57 +158,88 @@ const InteractiveMap = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="h-96 relative">
-          {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-[#014F86] mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Loading map...</p>
-              </div>
-            </div>
-          ) : showFallback || error ? (
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-100 to-teal-100 overflow-y-auto">
-              <div className="p-6">
-                <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border mb-4 text-center">
-                  <MapPin className="h-8 w-8 text-[#014F86] mx-auto mb-2" />
-                  <p className="text-[#014F86] font-semibold mb-1">Map unavailable</p>
-                  <p className="text-xs text-gray-600 mb-3">{error || "Unable to load interactive map"}</p>
-                  <Button onClick={retryMapLoad} variant="outline" size="sm" className="gap-2">
-                    <RefreshCw className="h-4 w-4" />
-                    Retry Map
-                  </Button>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-[#014F86] font-semibold mb-2">
-                    <List className="h-4 w-4" />
-                    Upcoming Events ({events.length})
+        <div className="h-[600px] relative bg-gradient-to-br from-blue-50 to-teal-50">
+          {/* Map Background */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-90"
+            style={{ backgroundImage: `url(${indiaMap})` }}
+          />
+          
+          {/* Event Markers */}
+          {Object.entries(eventsByCity).map(([city, cityEvents]) => {
+            const position = CITY_POSITIONS[city];
+            if (!position) return null;
+
+            return (
+              <div
+                key={city}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                style={{ 
+                  left: `${position.x}%`, 
+                  top: `${position.y}%`,
+                  zIndex: selectedCity === city ? 20 : 10
+                }}
+                onClick={() => setSelectedCity(selectedCity === city ? null : city)}
+              >
+                {/* Marker Pin */}
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform">
+                    {cityEvents.length}
                   </div>
-                  {events.map(event => (
-                    <div key={event.id} className="bg-white rounded-lg p-4 shadow border">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-[#014F86] text-sm">{event.name}</h4>
-                        <Badge className="bg-[#FF6F61] text-white text-xs">{event.points_reward} pts</Badge>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
-                        <Navigation className="h-3 w-3" />
-                        {event.location}
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <Badge variant="outline" className="text-xs">{event.category}</Badge>
-                        <Badge variant="outline" className="text-xs">{event.difficulty}</Badge>
-                        <span className="text-xs text-gray-600">
-                          {event.current_volunteers}/{event.max_volunteers} volunteers
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-[#E55B50]"></div>
                 </div>
+
+                {/* Popup on click */}
+                {selectedCity === city && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-80 bg-white rounded-lg shadow-2xl border-2 border-[#014F86] p-4 z-30">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-bold text-[#014F86] text-lg">{city}</h3>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCity(null);
+                        }}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{cityEvents.length} event{cityEvents.length > 1 ? 's' : ''}</p>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {cityEvents.map(event => (
+                        <div key={event.id} className="p-3 bg-gray-50 rounded-lg border">
+                          <h4 className="font-semibold text-sm text-[#014F86] mb-2">{event.name}</h4>
+                          <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
+                            <Navigation className="h-3 w-3" />
+                            {event.location}
+                          </div>
+                          <div className="flex gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-xs">{event.category}</Badge>
+                            <Badge variant="outline" className="text-xs">{event.difficulty}</Badge>
+                            <Badge className="bg-[#FF6F61] text-white text-xs">{event.points_reward} pts</Badge>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-2">
+                            {event.current_volunteers}/{event.max_volunteers} volunteers
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Legend */}
+          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg border">
+            <h4 className="font-semibold text-[#014F86] mb-2 text-sm">Map Legend</h4>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-[#FF6F61] to-[#E55B50] rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold">3</div>
+                <span className="text-xs text-gray-700">Event locations (click to view)</span>
               </div>
             </div>
-          ) : (
-            <div ref={mapContainer} className="absolute inset-0" />
-          )}
+          </div>
         </div>
       </CardContent>
     </Card>
