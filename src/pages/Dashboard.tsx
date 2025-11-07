@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Users, Award, Recycle, Calendar, MapPin, Plus, Camera, Bell } from "lucide-react";
+import { TrendingUp, Users, Award, Recycle, Calendar, MapPin, Plus, Camera, Bell, BarChart3, PieChart } from "lucide-react";
+import { LineChart, Line, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import StatCard from "@/components/StatCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import QuickActions from "@/components/QuickActions";
@@ -113,13 +114,34 @@ const Dashboard = () => {
     }
   };
 
-  const wasteBreakdown = [
-    { type: "Plastic", amount: Math.round(stats.totalWasteCollected * 0.5), percentage: 50, color: "bg-red-500" },
-    { type: "Organic", amount: Math.round(stats.totalWasteCollected * 0.2), percentage: 20, color: "bg-green-500" },
-    { type: "Paper", amount: Math.round(stats.totalWasteCollected * 0.15), percentage: 15, color: "bg-blue-500" },
-    { type: "Metal", amount: Math.round(stats.totalWasteCollected * 0.1), percentage: 10, color: "bg-yellow-500" },
-    { type: "Glass", amount: Math.round(stats.totalWasteCollected * 0.05), percentage: 5, color: "bg-gray-500" }
+  // Monthly trend data (mock data - replace with real data from backend)
+  const monthlyTrends = [
+    { month: "Jul", waste: 45, volunteers: 28, events: 3 },
+    { month: "Aug", waste: 62, volunteers: 35, events: 4 },
+    { month: "Sep", waste: 85, volunteers: 42, events: 5 },
+    { month: "Oct", waste: 120, volunteers: 58, events: 7 },
+    { month: "Nov", waste: Math.round(stats.totalWasteCollected * 0.3), volunteers: Math.round(stats.totalVolunteers * 0.8), events: stats.eventsCompleted }
   ];
+
+  // Waste breakdown for pie chart
+  const wasteBreakdown = [
+    { type: "Plastic", amount: Math.round(stats.totalWasteCollected * 0.5), percentage: 50, color: "#ef4444" },
+    { type: "Organic", amount: Math.round(stats.totalWasteCollected * 0.2), percentage: 20, color: "#22c55e" },
+    { type: "Paper", amount: Math.round(stats.totalWasteCollected * 0.15), percentage: 15, color: "#3b82f6" },
+    { type: "Metal", amount: Math.round(stats.totalWasteCollected * 0.1), percentage: 10, color: "#eab308" },
+    { type: "Glass", amount: Math.round(stats.totalWasteCollected * 0.05), percentage: 5, color: "#6b7280" }
+  ];
+
+  // Weekly comparison data
+  const weeklyComparison = [
+    { week: "Week 1", collected: 45, target: 50 },
+    { week: "Week 2", collected: 62, target: 60 },
+    { week: "Week 3", collected: 58, target: 65 },
+    { week: "Week 4", collected: 75, target: 70 }
+  ];
+
+  // Chart colors
+  const COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#6b7280"];
 
   if (authLoading || loading) {
     return (
@@ -236,53 +258,222 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-4">
-            {/* Monthly Trends */}
+            {/* Growth Trends Chart */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-[#014F86]">
                   <TrendingUp className="h-5 w-5" />
-                  Community Growth
+                  Community Growth Trends
                 </CardTitle>
+                <CardDescription>Monthly progress across key metrics</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 text-center py-8">
-                  <Award className="h-16 w-16 text-brand-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-brand-primary">
-                    {stats.totalWasteCollected}kg Total Waste Collected
-                  </h3>
-                  <p className="text-gray-600">
-                    Our community has made a significant impact on coastal conservation!
-                  </p>
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={monthlyTrends}>
+                    <defs>
+                      <linearGradient id="colorWaste" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF6F61" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#FF6F61" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorVolunteers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#014F86" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#014F86" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                    />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="waste" 
+                      stroke="#FF6F61" 
+                      fillOpacity={1} 
+                      fill="url(#colorWaste)" 
+                      name="Waste (kg)"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="volunteers" 
+                      stroke="#014F86" 
+                      fillOpacity={1} 
+                      fill="url(#colorVolunteers)" 
+                      name="Volunteers"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
+
+            {/* Performance Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#014F86]">
+                    <BarChart3 className="h-5 w-5" />
+                    Weekly Performance
+                  </CardTitle>
+                  <CardDescription>Collected vs Target</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={weeklyComparison}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="week" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      />
+                      <Legend />
+                      <Bar dataKey="collected" fill="#22c55e" name="Collected (kg)" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="target" fill="#014F86" name="Target (kg)" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#014F86]">
+                    <Award className="h-5 w-5" />
+                    Impact Summary
+                  </CardTitle>
+                  <CardDescription>Community achievements</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Total Waste Collected</p>
+                        <p className="text-2xl font-bold text-[#014F86]">{stats.totalWasteCollected}kg</p>
+                      </div>
+                      <Award className="h-12 w-12 text-[#FF6F61]" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Coastline Restored</p>
+                        <p className="text-2xl font-bold text-[#014F86]">{stats.coastlineRestored}km</p>
+                      </div>
+                      <MapPin className="h-12 w-12 text-[#22c55e]" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Active Volunteers</p>
+                        <p className="text-2xl font-bold text-[#014F86]">{stats.totalVolunteers}</p>
+                      </div>
+                      <Users className="h-12 w-12 text-[#3b82f6]" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="breakdown" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#014F86]">
+                    <PieChart className="h-5 w-5" />
+                    Waste Type Distribution
+                  </CardTitle>
+                  <CardDescription>Breakdown by material type</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsPie>
+                      <Pie
+                        data={wasteBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ type, percentage }) => `${type} ${percentage}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="amount"
+                      >
+                        {wasteBreakdown.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                        formatter={(value: number) => `${value}kg`}
+                      />
+                    </RechartsPie>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#014F86]">
+                    <Recycle className="h-5 w-5" />
+                    Detailed Breakdown
+                  </CardTitle>
+                  <CardDescription>Material analysis with metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {wasteBreakdown.map((waste, index) => (
+                      <div key={waste.type} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 rounded"
+                              style={{ backgroundColor: COLORS[index] }}
+                            ></div>
+                            <span className="font-medium">{waste.type}</span>
+                          </div>
+                          <span className="text-sm text-gray-600">{waste.amount}kg</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Progress value={waste.percentage} className="flex-1" />
+                          <span className="text-sm font-medium text-[#014F86]">{waste.percentage}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-gradient-to-r from-[#C5E4CF] to-[#F6EFD2] rounded-lg">
+                    <p className="text-sm font-semibold text-[#014F86] mb-1">Environmental Impact</p>
+                    <p className="text-xs text-gray-700">
+                      By removing {stats.totalWasteCollected}kg of waste, our community has prevented approximately {Math.round(stats.totalWasteCollected * 0.3)}kg of plastic from entering the ocean.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Comparative Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-[#014F86]">Waste Type Analysis</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-[#014F86]">
+                  <BarChart3 className="h-5 w-5" />
+                  Material Comparison
+                </CardTitle>
+                <CardDescription>Waste collected by type over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {wasteBreakdown.map((waste) => (
-                    <div key={waste.type} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{waste.type}</span>
-                        <span className="text-sm text-gray-600">{waste.amount}kg ({waste.percentage}%)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-3">
-                          <div 
-                            className={`h-3 rounded-full ${waste.color}`}
-                            style={{ width: `${waste.percentage}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium">{waste.percentage}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={wasteBreakdown}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="type" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      formatter={(value: number) => `${value}kg`}
+                    />
+                    <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
+                      {wasteBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </TabsContent>
