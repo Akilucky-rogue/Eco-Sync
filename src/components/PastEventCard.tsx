@@ -22,7 +22,16 @@ const PastEventCard = ({ event }: PastEventCardProps) => {
       <CardContent className="p-8">
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-4">
-            <div className="text-4xl">{event.image}</div>
+            <div className="w-16 h-16 rounded-lg overflow-hidden shadow-md border-2 border-gray-200">
+              <img 
+                src={event.image} 
+                alt={event.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a';
+                }}
+              />
+            </div>
             <div>
               <h3 className="font-bold text-[#014F86] text-xl mb-1">{event.name}</h3>
               <p className="text-gray-600">{event.date}</p>
