@@ -83,7 +83,14 @@ const SocialFeed = () => {
         .from('teams')
         .select(`
           *,
-          team_members(user_id, role, joined_at)
+          team_members(
+            user_id, 
+            role, 
+            joined_at,
+            profiles:user_id (
+              full_name
+            )
+          )
         `)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -96,14 +103,14 @@ const SocialFeed = () => {
         description: team.description,
         members: team.team_members?.map((m: any) => ({
           id: m.user_id,
-          name: 'Member', // Would need to join with profiles
+          name: m.profiles?.full_name || 'Member',
           role: m.role,
           joinedAt: new Date(m.joined_at).toLocaleDateString()
         })) || [],
-        location: 'Unknown',
+        location: team.location || 'Unknown',
         nextEvent: 'TBD',
-        isPublic: true,
-        maxMembers: 20
+        isPublic: team.is_public ?? true,
+        maxMembers: team.member_limit || 20
       })) || []);
     } catch (error: any) {
       console.error('Error loading teams:', error);
@@ -114,19 +121,29 @@ const SocialFeed = () => {
     try {
       const { data, error } = await supabase
         .from('social_posts')
-        .select('*')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('type', 'photo')
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
 
-      setSocialPosts(data?.filter(post => post.type === 'photo').map(post => ({
+      setSocialPosts(data?.map(post => ({
         id: post.id,
-        user: { name: 'User', avatar: '' }, // Would need to join with profiles
+        user: { 
+          name: post.profiles?.full_name || 'Anonymous User', 
+          avatar: post.profiles?.avatar_url || '' 
+        },
         image: post.image_url || '/placeholder.svg',
         caption: post.content,
         location: post.location || 'Unknown',
-        eventName: 'Event',
+        eventName: (post.metadata as any)?.event_id ? 'Event' : undefined,
         timestamp: new Date(post.created_at).toLocaleDateString(),
         likes: post.likes,
         comments: 0,
