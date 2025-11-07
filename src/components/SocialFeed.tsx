@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Camera, Trophy } from "lucide-react";
+import { Search, Users, Camera, Trophy, Plus } from "lucide-react";
 import TeamCard from "./TeamCard";
 import PhotoShareCard from "./PhotoShareCard";
 import PageLoader from "./PageLoader";
 import ErrorMessage from "./ErrorMessage";
+import TeamCreationDialog from "./TeamCreationDialog";
+import PhotoUploadDialog from "./PhotoUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -17,6 +19,8 @@ const SocialFeed = () => {
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<any[]>([]);
   const [socialPosts, setSocialPosts] = useState<any[]>([]);
+  const [showTeamDialog, setShowTeamDialog] = useState(false);
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -185,22 +189,26 @@ const SocialFeed = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search teams, people, or events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search teams, people, or events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button 
+            className="bg-brand-accent hover:bg-brand-accent/90 text-white"
+            onClick={() => setShowPhotoDialog(true)}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Share Photo
+          </Button>
         </div>
-        <Button className="bg-brand-accent hover:bg-brand-accent/90 text-white">
-          <Camera className="h-4 w-4 mr-2" />
-          Share Photo
-        </Button>
-      </div>
 
       <Tabs defaultValue="teams" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl border-0 p-1 h-14">
@@ -228,11 +236,28 @@ const SocialFeed = () => {
         </TabsList>
 
         <TabsContent value="teams" className="space-y-6">
+          <div className="flex justify-end mb-4">
+            <Button 
+              onClick={() => setShowTeamDialog(true)}
+              className="bg-brand-primary hover:bg-brand-primary/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Team
+            </Button>
+          </div>
+          
           {teams.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">No teams yet</h3>
-              <p className="text-gray-500">Be the first to create a team!</p>
+              <p className="text-gray-500 mb-4">Be the first to create a team!</p>
+              <Button 
+                onClick={() => setShowTeamDialog(true)}
+                className="bg-brand-primary hover:bg-brand-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Team
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -280,6 +305,19 @@ const SocialFeed = () => {
         </TabsContent>
       </Tabs>
     </div>
+
+    {/* Dialogs */}
+    <TeamCreationDialog 
+      open={showTeamDialog} 
+      onOpenChange={setShowTeamDialog}
+      onSuccess={loadTeams}
+    />
+    <PhotoUploadDialog 
+      open={showPhotoDialog} 
+      onOpenChange={setShowPhotoDialog}
+      onSuccess={loadSocialPosts}
+    />
+  </>
   );
 };
 

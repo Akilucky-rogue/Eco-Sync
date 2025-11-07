@@ -364,6 +364,9 @@ export type Database = {
           created_by: string
           description: string | null
           id: string
+          is_public: boolean
+          location: string | null
+          member_limit: number | null
           name: string
         }
         Insert: {
@@ -371,6 +374,9 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
+          is_public?: boolean
+          location?: string | null
+          member_limit?: number | null
           name: string
         }
         Update: {
@@ -378,6 +384,9 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+          is_public?: boolean
+          location?: string | null
+          member_limit?: number | null
           name?: string
         }
         Relationships: [
