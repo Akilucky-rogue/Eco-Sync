@@ -80,9 +80,9 @@ graph TB
 |-------|-------------|
 | **Frontend** | React 18, TypeScript, Vite |
 | **Routing** | React Router v6 |
-| **State Management** | React Query (TanStack Query) |
+| **State Management** | React Query |
 | **UI Framework** | Tailwind CSS, Radix UI, shadcn/ui |
-| **Backend** | Lovable Cloud (Supabase) |
+| **Backend** | Supabase |
 | **Database** | PostgreSQL with Row Level Security |
 | **Authentication** | Supabase Auth |
 | **Storage** | Supabase Storage |
