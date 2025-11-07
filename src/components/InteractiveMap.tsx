@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Navigation } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import indiaMap from "@/assets/india-coastal-map.jpg";
+import indiaMap from "@/assets/india-states-map.png";
 
 interface EventLocation {
   id: string;
@@ -17,21 +17,31 @@ interface EventLocation {
   max_volunteers: number;
 }
 
-// Approximate pixel positions for cities on a 1920x1080 map (adjust based on actual image)
+// Approximate pixel positions for coastal cities on the India states map
 const CITY_POSITIONS: Record<string, { x: number; y: number }> = {
-  "Mumbai": { x: 35, y: 55 },
-  "Goa": { x: 32, y: 65 },
-  "Chennai": { x: 62, y: 72 },
-  "Kochi": { x: 48, y: 78 },
-  "Visakhapatnam": { x: 68, y: 60 },
-  "Pondicherry": { x: 64, y: 74 },
-  "Kolkata": { x: 75, y: 48 },
-  "Mangalore": { x: 44, y: 72 },
-  "Puri": { x: 70, y: 58 },
-  "Diu": { x: 28, y: 52 },
-  "Kovalam": { x: 48, y: 82 },
-  "Andaman": { x: 85, y: 70 },
-  "Digha": { x: 75, y: 52 }
+  // West Coast
+  "Mumbai": { x: 26, y: 54 },
+  "Goa": { x: 24, y: 62 },
+  "Mangalore": { x: 25, y: 68 },
+  "Kochi": { x: 26, y: 76 },
+  "Kovalam": { x: 27, y: 82 },
+  "Diu": { x: 20, y: 48 },
+  
+  // East Coast
+  "Chennai": { x: 52, y: 70 },
+  "Pondicherry": { x: 53, y: 72 },
+  "Visakhapatnam": { x: 58, y: 58 },
+  "Puri": { x: 60, y: 54 },
+  "Kolkata": { x: 62, y: 50 },
+  "Digha": { x: 63, y: 52 },
+  
+  // Islands
+  "Andaman": { x: 75, y: 72 },
+  "Port Blair": { x: 75, y: 72 },
+  
+  // Additional coastal cities
+  "Surat": { x: 22, y: 50 },
+  "Thiruvananthapuram": { x: 27, y: 82 }
 };
 
 const InteractiveMap = () => {
@@ -140,7 +150,7 @@ const InteractiveMap = () => {
           <div className="p-2 bg-white/20 rounded-lg">
             <MapPin className="h-6 w-6" />
           </div>
-          Coastal Cleanup Locations
+          India Cleanup Events Map
           <div className="flex gap-2 ml-auto">
             <Badge className="bg-white/20 text-white border-white/30 flex items-center gap-1">
               <span className="relative flex h-2 w-2">
