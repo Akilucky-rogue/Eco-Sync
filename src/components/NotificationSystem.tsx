@@ -14,7 +14,11 @@ interface Notification {
   isRead: boolean;
 }
 
-const NotificationSystem = () => {
+interface NotificationSystemProps {
+  onClose?: () => void;
+}
+
+const NotificationSystem = ({ onClose }: NotificationSystemProps = {}) => {
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
@@ -67,33 +71,41 @@ const NotificationSystem = () => {
 
   return (
     <div className="relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setShowNotifications(!showNotifications)}
-        className="relative"
-      >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-[#FF6F61] text-white text-xs">
-            {unreadCount}
-          </Badge>
-        )}
-      </Button>
+      {!onClose && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowNotifications(!showNotifications)}
+          className="relative"
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-[#FF6F61] text-white text-xs">
+              {unreadCount}
+            </Badge>
+          )}
+        </Button>
+      )}
 
-      {showNotifications && (
-        <Card className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto shadow-xl border-0 z-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-[#014F86]">Notifications</h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowNotifications(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      {(showNotifications || onClose) && (
+        <>
+          {onClose && <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />}
+          <Card className={`${
+            onClose 
+              ? 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-md' 
+              : 'absolute right-0 top-12 w-80 z-50'
+          } max-h-96 overflow-y-auto shadow-xl border-0`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-[#014F86]">Notifications</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onClose ? onClose() : setShowNotifications(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             
             {notifications.length === 0 ? (
               <p className="text-gray-500 text-center py-4">No notifications</p>
@@ -134,6 +146,7 @@ const NotificationSystem = () => {
             )}
           </CardContent>
         </Card>
+        </>
       )}
     </div>
   );

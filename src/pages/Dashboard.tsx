@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Users, Award, Recycle, Calendar, MapPin } from "lucide-react";
+import { TrendingUp, Users, Award, Recycle, Calendar, MapPin, Plus, Camera, Bell } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import QuickActions from "@/components/QuickActions";
+import PhotoUploadDialog from "@/components/PhotoUploadDialog";
+import NotificationSystem from "@/components/NotificationSystem";
 import ErrorBoundary from "../components/ErrorBoundary";
 import PageLoader from "../components/PageLoader";
 import ErrorMessage from "../components/ErrorMessage";
@@ -25,6 +27,8 @@ const Dashboard = () => {
     coastlineRestored: 0
   });
   const [activities, setActivities] = useState<any[]>([]);
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -146,7 +150,49 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <QuickActions variant="horizontal" className="mb-6" />
+        <QuickActions 
+          variant="horizontal" 
+          className="mb-6"
+          actions={[
+            {
+              id: 'create-event',
+              label: 'Create Event',
+              icon: <Plus className="h-4 w-4" />,
+              onClick: () => navigate('/events/manage'),
+              variant: 'primary'
+            },
+            {
+              id: 'join-cleanup',
+              label: 'Join Cleanup',
+              icon: <Calendar className="h-4 w-4" />,
+              onClick: () => navigate('/events')
+            },
+            {
+              id: 'share-photo',
+              label: 'Share Photo',
+              icon: <Camera className="h-4 w-4" />,
+              onClick: () => setShowPhotoDialog(true)
+            },
+            {
+              id: 'find-team',
+              label: 'Find Team',
+              icon: <Users className="h-4 w-4" />,
+              onClick: () => navigate('/social')
+            },
+            {
+              id: 'view-map',
+              label: 'View Map',
+              icon: <MapPin className="h-4 w-4" />,
+              onClick: () => navigate('/map')
+            },
+            {
+              id: 'notifications',
+              label: 'Alerts',
+              icon: <Bell className="h-4 w-4" />,
+              onClick: () => setShowNotifications(true)
+            }
+          ]}
+        />
 
         {/* Enhanced Overview Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -258,6 +304,17 @@ const Dashboard = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Photo Upload Dialog */}
+        <PhotoUploadDialog 
+          open={showPhotoDialog}
+          onOpenChange={setShowPhotoDialog}
+        />
+
+        {/* Notification System */}
+        {showNotifications && (
+          <NotificationSystem onClose={() => setShowNotifications(false)} />
+        )}
       </div>
     </ErrorBoundary>
   );

@@ -15,6 +15,7 @@ import Social from "./pages/Social";
 import EventManagement from "./pages/EventManagement";
 import Auth from "./pages/Auth";
 import WasteClassification from "./pages/WasteClassification";
+import Map from "./pages/Map";
 import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/gamification" element={<Layout><Gamification /></Layout>} />
             <Route path="/social" element={<Layout><Social /></Layout>} />
             <Route path="/waste-classifier" element={<Layout><WasteClassification /></Layout>} />
+            <Route path="/map" element={<Layout><Map /></Layout>} />
             <Route path="/admin" element={<Layout><Admin /></Layout>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
