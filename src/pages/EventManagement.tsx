@@ -87,10 +87,35 @@ const EventManagement = () => {
     }
   };
 
-  const handleEventCreated = () => {
-    setShowCreateForm(false);
-    toast.success("Event created successfully!");
-    loadEvents();
+  const handleEventCreated = async (eventData: any) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('events')
+        .insert({
+          name: eventData.title,
+          description: eventData.description,
+          location: eventData.location,
+          date: eventData.date,
+          time: eventData.time,
+          category: eventData.category,
+          difficulty: eventData.difficulty || 'beginner',
+          max_volunteers: eventData.maxParticipants === 'unlimited' ? 999 : parseInt(eventData.maxParticipants),
+          points_reward: 100,
+          status: 'upcoming',
+          created_by: user.id,
+          waste_target: []
+        });
+
+      if (error) throw error;
+
+      setShowCreateForm(false);
+      toast.success("Event created successfully!");
+      loadEvents();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create event");
+    }
   };
 
   const handleCheckIn = async (eventId: string) => {
