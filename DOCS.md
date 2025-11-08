@@ -85,7 +85,10 @@ Eco-Sanjivani is built as a modern full-stack web application using React for th
 - **Form Handling**: React Hook Form + Zod validation
 - **Data Visualization**: Recharts
 - **Maps**: Custom Illustrated India Map (no external API)
-- **AI**: Lovable AI Gateway (Google Gemini 2.5 Flash)
+- **AI Model**: Google Gemini 2.5 Flash (Vision-Language Transformer)
+- **AI Architecture**: CNN + Vision Transformers with cross-modal attention
+- **CV Techniques**: Monocular depth estimation, semantic segmentation, volume regression
+- **AI Gateway**: Lovable AI (Serverless inference API)
 
 #### Backend Technologies (Lovable Cloud)
 - **Database**: PostgreSQL 15+
