@@ -106,6 +106,517 @@ The AI Waste Classification system in Eco-Sanjivani uses **computer vision** and
 
 ---
 
+## Detailed ML Architecture Diagrams
+
+### Complete Neural Network Pipeline
+
+```mermaid
+graph TB
+    subgraph "Input Layer"
+        IMG[Image: 224×224×3]
+        TXT[Text Prompt]
+    end
+    
+    subgraph "Vision Encoder - CNN Layers"
+        CNN1[Conv Layer 1<br/>Filters: 64, Kernel: 7×7<br/>Output: 56×56×64<br/>Activation: ReLU]
+        BN1[Batch Norm]
+        MP1[MaxPool 2×2]
+        
+        CNN2[Conv Layer 2<br/>Filters: 128, Kernel: 3×3<br/>Output: 56×56×128<br/>Activation: ReLU]
+        BN2[Batch Norm]
+        
+        CNN3[Conv Layer 3<br/>Filters: 256, Kernel: 3×3<br/>Output: 28×28×256<br/>Activation: ReLU]
+        BN3[Batch Norm]
+        
+        CNN4[Conv Layer 4<br/>Filters: 512, Kernel: 3×3<br/>Output: 14×14×512<br/>Activation: ReLU]
+        BN4[Batch Norm]
+    end
+    
+    subgraph "Vision Transformer - ViT"
+        PATCH[Patch Splitting<br/>16×16 patches → 196 patches]
+        EMBED[Linear Embedding<br/>768 dimensions per patch]
+        POS[Positional Encoding<br/>Sinusoidal PE]
+        
+        MHSA1[Multi-Head Self-Attention 1<br/>Heads: 12, d_k: 64]
+        FFN1[Feed-Forward Network 1<br/>768→3072→768]
+        LN1[Layer Norm]
+        
+        MHSA2[Multi-Head Self-Attention 2<br/>Heads: 12, d_k: 64]
+        FFN2[Feed-Forward Network 2<br/>768→3072→768]
+        LN2[Layer Norm]
+    end
+    
+    subgraph "Language Encoder"
+        TOK[Tokenization<br/>Byte-Pair Encoding]
+        TEMBED[Token Embedding<br/>768 dimensions]
+        TPOS[Positional Encoding]
+        
+        TMHSA[Multi-Head Self-Attention<br/>Heads: 12]
+        TFFN[Feed-Forward Network<br/>768→3072→768]
+        TLN[Layer Norm]
+    end
+    
+    subgraph "Cross-Modal Fusion"
+        CROSS[Cross-Attention<br/>Q: Text, K: Vision, V: Vision<br/>Output: 768-dim fused features]
+    end
+    
+    subgraph "Task-Specific Heads"
+        CLASS[Waste Type Classifier<br/>Dense: 768→512→256→9<br/>Activation: ReLU → Softmax]
+        CONF[Confidence Scorer<br/>max(softmax probabilities)]
+        RECYCLE[Recyclability Classifier<br/>Dense: 768→128→1<br/>Activation: Sigmoid]
+    end
+    
+    subgraph "Volume Estimation Branch"
+        DEPTH[Depth Estimator<br/>U-Net CNN Encoder-Decoder]
+        DET[Object Detector<br/>YOLO-style 7×7 grid]
+        SEG[Semantic Segmentation<br/>Pixel-wise classification]
+        VOL[Volume Calculator<br/>Geometric + ML Regression]
+    end
+    
+    subgraph "Output Layer"
+        OUT1[Waste Type + Confidence]
+        OUT2[Recyclability]
+        OUT3[Volume + Weight]
+        OUT4[Disposal Recommendation]
+    end
+    
+    IMG --> CNN1
+    CNN1 --> BN1 --> MP1
+    MP1 --> CNN2 --> BN2
+    BN2 --> CNN3 --> BN3
+    BN3 --> CNN4 --> BN4
+    
+    BN4 --> PATCH
+    PATCH --> EMBED --> POS
+    POS --> MHSA1 --> FFN1 --> LN1
+    LN1 --> MHSA2 --> FFN2 --> LN2
+    
+    TXT --> TOK --> TEMBED --> TPOS
+    TPOS --> TMHSA --> TFFN --> TLN
+    
+    LN2 --> CROSS
+    TLN --> CROSS
+    
+    CROSS --> CLASS --> OUT1
+    CROSS --> CONF --> OUT1
+    CROSS --> RECYCLE --> OUT2
+    
+    IMG --> DEPTH
+    IMG --> DET
+    IMG --> SEG
+    DEPTH --> VOL
+    DET --> VOL
+    SEG --> VOL
+    VOL --> OUT3
+    
+    CROSS --> OUT4
+    
+    style IMG fill:#e1f5ff
+    style CNN1 fill:#ff6b6b
+    style CNN2 fill:#ff6b6b
+    style CNN3 fill:#ff6b6b
+    style CNN4 fill:#ff6b6b
+    style MHSA1 fill:#4ecdc4
+    style MHSA2 fill:#4ecdc4
+    style CROSS fill:#ffe66d
+    style CLASS fill:#a8e6cf
+    style VOL fill:#ff8b94
+```
+
+### Multi-Head Self-Attention Mechanism
+
+```mermaid
+graph TB
+    subgraph "Input"
+        X[Input Embeddings<br/>x ∈ ℝ^(N×768)]
+    end
+    
+    subgraph "Linear Projections"
+        WQ[W_Q: 768×64]
+        WK[W_K: 768×64]
+        WV[W_V: 768×64]
+    end
+    
+    subgraph "Head 1"
+        Q1[Q = x·W_Q]
+        K1[K = x·W_K]
+        V1[V = x·W_V]
+        
+        QKT1[Q·K^T / √64]
+        SM1[Softmax]
+        ATT1[Attention × V]
+    end
+    
+    subgraph "Head 2"
+        Q2[Q = x·W_Q]
+        K2[K = x·W_K]
+        V2[V = x·W_V]
+        
+        QKT2[Q·K^T / √64]
+        SM2[Softmax]
+        ATT2[Attention × V]
+    end
+    
+    subgraph "Head 12"
+        Q12[Q = x·W_Q]
+        K12[K = x·W_K]
+        V12[V = x·W_V]
+        
+        QKT12[Q·K^T / √64]
+        SM12[Softmax]
+        ATT12[Attention × V]
+    end
+    
+    subgraph "Concatenation"
+        CONCAT[Concat heads:<br/>head₁ ⊕ head₂ ⊕ ... ⊕ head₁₂]
+        WO[W_O: 768×768]
+        OUT[Output: ℝ^(N×768)]
+    end
+    
+    X --> WQ
+    X --> WK
+    X --> WV
+    
+    WQ --> Q1
+    WK --> K1
+    WV --> V1
+    
+    Q1 --> QKT1
+    K1 --> QKT1
+    QKT1 --> SM1
+    SM1 --> ATT1
+    V1 --> ATT1
+    
+    WQ --> Q2
+    WK --> K2
+    WV --> V2
+    
+    Q2 --> QKT2
+    K2 --> QKT2
+    QKT2 --> SM2
+    SM2 --> ATT2
+    V2 --> ATT2
+    
+    WQ --> Q12
+    WK --> K12
+    WV --> V12
+    
+    Q12 --> QKT12
+    K12 --> QKT12
+    QKT12 --> SM12
+    SM12 --> ATT12
+    V12 --> ATT12
+    
+    ATT1 --> CONCAT
+    ATT2 --> CONCAT
+    ATT12 --> CONCAT
+    
+    CONCAT --> WO --> OUT
+    
+    style X fill:#e1f5ff
+    style QKT1 fill:#ffe66d
+    style SM1 fill:#a8e6cf
+    style CONCAT fill:#ff8b94
+```
+
+### U-Net Depth Estimation Architecture
+
+```mermaid
+graph TB
+    subgraph "Encoder - Contracting Path"
+        E0[Input: 224×224×3]
+        E1[Conv 64 + ReLU<br/>MaxPool → 112×112×64]
+        E2[Conv 128 + ReLU<br/>MaxPool → 56×56×128]
+        E3[Conv 256 + ReLU<br/>MaxPool → 28×28×256]
+        E4[Conv 512 + ReLU<br/>MaxPool → 14×14×512]
+        BOTTLE[Bottleneck<br/>14×14×512]
+    end
+    
+    subgraph "Decoder - Expanding Path"
+        D3[Upsample + Conv 256<br/>28×28×256]
+        D2[Upsample + Conv 128<br/>56×56×128]
+        D1[Upsample + Conv 64<br/>112×112×64]
+        D0[Upsample + Conv 1<br/>224×224×1]
+    end
+    
+    subgraph "Skip Connections"
+        S3[Concatenate]
+        S2[Concatenate]
+        S1[Concatenate]
+    end
+    
+    subgraph "Output"
+        DEPTH[Depth Map<br/>D(x,y) ∈ [0,1]]
+    end
+    
+    E0 --> E1
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
+    E4 --> BOTTLE
+    
+    BOTTLE --> D3
+    E3 --> S3
+    D3 --> S3
+    S3 --> D2
+    
+    E2 --> S2
+    D2 --> S2
+    S2 --> D1
+    
+    E1 --> S1
+    D1 --> S1
+    S1 --> D0
+    
+    D0 --> DEPTH
+    
+    style E0 fill:#e1f5ff
+    style BOTTLE fill:#ff6b6b
+    style S3 fill:#ffe66d
+    style S2 fill:#ffe66d
+    style S1 fill:#ffe66d
+    style DEPTH fill:#a8e6cf
+```
+
+### Cross-Modal Attention Flow
+
+```mermaid
+graph LR
+    subgraph "Text Features"
+        T1[Token 1: 'Analyze']
+        T2[Token 2: 'waste']
+        T3[Token 3: 'type']
+        T4[Token N: '...']
+        
+        TMAT[Text Matrix T<br/>N_t × 768]
+    end
+    
+    subgraph "Vision Features"
+        V1[Patch 1: top-left]
+        V2[Patch 2: ...]
+        V3[Patch 196: bottom-right]
+        
+        VMAT[Vision Matrix V<br/>N_v × 768]
+    end
+    
+    subgraph "Attention Computation"
+        WQ[W_Q: 768×768<br/>Query projection]
+        WK[W_K: 768×768<br/>Key projection]
+        WV[W_V: 768×768<br/>Value projection]
+        
+        Q[Q = T × W_Q<br/>Text queries]
+        K[K = V × W_K<br/>Vision keys]
+        V_val[V = V × W_V<br/>Vision values]
+        
+        SCORE[Score Matrix<br/>Q·K^T / √d_k]
+        SOFT[Softmax<br/>Attention weights α]
+        FUSE[Weighted sum<br/>α × V]
+    end
+    
+    subgraph "Fused Output"
+        F[Fused Features<br/>N_t × 768<br/>Text-guided vision]
+    end
+    
+    T1 --> TMAT
+    T2 --> TMAT
+    T3 --> TMAT
+    T4 --> TMAT
+    
+    V1 --> VMAT
+    V2 --> VMAT
+    V3 --> VMAT
+    
+    TMAT --> WQ --> Q
+    VMAT --> WK --> K
+    VMAT --> WV --> V_val
+    
+    Q --> SCORE
+    K --> SCORE
+    SCORE --> SOFT
+    SOFT --> FUSE
+    V_val --> FUSE
+    
+    FUSE --> F
+    
+    style TMAT fill:#ffe66d
+    style VMAT fill:#4ecdc4
+    style SCORE fill:#ff8b94
+    style SOFT fill:#a8e6cf
+    style F fill:#ffd93d
+```
+
+### Classification Head Architecture
+
+```mermaid
+graph TB
+    subgraph "Input"
+        FUSED[Fused Features<br/>768 dimensions]
+    end
+    
+    subgraph "Dense Layer 1"
+        W1[W₁: 768×512<br/>b₁: 512]
+        ACT1[ReLU Activation<br/>f(x) = max(0, x)]
+        DROP1[Dropout p=0.3<br/>Random neuron masking]
+    end
+    
+    subgraph "Dense Layer 2"
+        W2[W₂: 512×256<br/>b₂: 256]
+        ACT2[ReLU Activation]
+    end
+    
+    subgraph "Output Layer"
+        W3[W₃: 256×9<br/>b₃: 9]
+        LOGITS[Logits z ∈ ℝ⁹]
+    end
+    
+    subgraph "Activation"
+        SOFT[Softmax<br/>P(class_i) = exp(z_i) / Σexp(z_j)]
+    end
+    
+    subgraph "Predictions"
+        PROBS[Probabilities<br/>[p₁, p₂, ..., p₉]]
+        PRED[Prediction<br/>argmax(P)]
+        CONF[Confidence<br/>max(P)]
+    end
+    
+    FUSED --> W1
+    W1 --> ACT1
+    ACT1 --> DROP1
+    DROP1 --> W2
+    W2 --> ACT2
+    ACT2 --> W3
+    W3 --> LOGITS
+    LOGITS --> SOFT
+    SOFT --> PROBS
+    PROBS --> PRED
+    PROBS --> CONF
+    
+    style FUSED fill:#e1f5ff
+    style ACT1 fill:#ff6b6b
+    style ACT2 fill:#ff6b6b
+    style SOFT fill:#a8e6cf
+    style PRED fill:#ffe66d
+```
+
+### Volume Regression Network
+
+```mermaid
+graph TB
+    subgraph "Input Features"
+        IMG_FEAT[Image Features<br/>768-dim from ViT]
+        DEPTH_STAT[Depth Statistics<br/>32-dim: mean, std, min, max, percentiles]
+        BBOX[Bounding Box Features<br/>16-dim: x, y, w, h, aspect_ratio, area]
+    end
+    
+    subgraph "Feature Concatenation"
+        CONCAT[Concatenate<br/>768 + 32 + 16 = 816-dim]
+    end
+    
+    subgraph "Regression Network"
+        FC1[Fully Connected 1<br/>816 → 256<br/>ReLU activation]
+        DROP1[Dropout 0.3]
+        
+        FC2[Fully Connected 2<br/>256 → 128<br/>ReLU activation]
+        
+        FC3[Fully Connected 3<br/>128 → 1<br/>Linear output]
+    end
+    
+    subgraph "Output"
+        VOL[Volume Prediction<br/>v_pred in liters]
+    end
+    
+    subgraph "Loss Function"
+        LOSS[MSE Loss<br/>L = (v_pred - v_true)²]
+    end
+    
+    IMG_FEAT --> CONCAT
+    DEPTH_STAT --> CONCAT
+    BBOX --> CONCAT
+    
+    CONCAT --> FC1
+    FC1 --> DROP1
+    DROP1 --> FC2
+    FC2 --> FC3
+    FC3 --> VOL
+    
+    VOL --> LOSS
+    
+    style IMG_FEAT fill:#4ecdc4
+    style DEPTH_STAT fill:#ffe66d
+    style BBOX fill:#ff8b94
+    style CONCAT fill:#a8e6cf
+    style VOL fill:#ffd93d
+```
+
+---
+
+## Training Pipeline Diagram
+
+```mermaid
+graph TB
+    subgraph "Pre-training Phase"
+        WEB[Web-scale Dataset<br/>Billions of images + text]
+        CONTRAST[Contrastive Learning<br/>L_CL: Align image-text pairs]
+        MLM[Masked Language Modeling<br/>L_MLM: Predict masked tokens]
+        ITM[Image-Text Matching<br/>L_ITM: Binary matching]
+        
+        PRETRAIN_LOSS[Combined Loss<br/>L = λ₁L_CL + λ₂L_MLM + λ₃L_ITM]
+    end
+    
+    subgraph "Fine-tuning Phase"
+        WASTE_DATA[Waste Dataset<br/>15K images, 9 classes]
+        CLASS_LOSS[Classification Loss<br/>L_class: Cross-entropy]
+        VOL_LOSS[Volume Loss<br/>L_vol: MSE]
+        RECYCLE_LOSS[Recyclability Loss<br/>L_recycle: Binary cross-entropy]
+        
+        FINETUNE_LOSS[Combined Loss<br/>L = L_class + αL_vol + βL_recycle]
+    end
+    
+    subgraph "Optimization"
+        ADAMW[AdamW Optimizer<br/>η=1e-4, β₁=0.9, β₂=0.999, λ=0.01]
+        WARMUP[Warmup Schedule<br/>1000 steps linear warmup]
+        COSINE[Cosine Annealing<br/>η_min=1e-6]
+    end
+    
+    subgraph "Model Checkpoint"
+        GEMINI[Gemini 2.5 Flash<br/>Billion-parameter model]
+    end
+    
+    WEB --> CONTRAST
+    WEB --> MLM
+    WEB --> ITM
+    
+    CONTRAST --> PRETRAIN_LOSS
+    MLM --> PRETRAIN_LOSS
+    ITM --> PRETRAIN_LOSS
+    
+    PRETRAIN_LOSS --> GEMINI
+    
+    GEMINI --> WASTE_DATA
+    WASTE_DATA --> CLASS_LOSS
+    WASTE_DATA --> VOL_LOSS
+    WASTE_DATA --> RECYCLE_LOSS
+    
+    CLASS_LOSS --> FINETUNE_LOSS
+    VOL_LOSS --> FINETUNE_LOSS
+    RECYCLE_LOSS --> FINETUNE_LOSS
+    
+    FINETUNE_LOSS --> ADAMW
+    ADAMW --> WARMUP
+    WARMUP --> COSINE
+    
+    COSINE --> GEMINI
+    
+    style WEB fill:#e1f5ff
+    style PRETRAIN_LOSS fill:#ff6b6b
+    style FINETUNE_LOSS fill:#ffe66d
+    style GEMINI fill:#a8e6cf
+```
+
+---
+
+---
+
 ## ML Models & Technology
 
 ### Core Architecture: Multimodal Vision-Language Transformer
